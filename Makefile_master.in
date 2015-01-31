@@ -1,2 +1,17 @@
+makefiles_str       = {{ makefiles_str }}
+compiler_file   = {{ compiler_file }}
+config_file_str = {{ config_file_str }}
+
+all: Makefile {{ makefiles_str }}
+{{ make_lines }}
+
+clean:
+{{ clean_lines }}
+
+depend:
+{{ depend_lines }}
+
+Makefile: $(config_file_str) $(compiler_file)
+	@compiler.py ..
 
 

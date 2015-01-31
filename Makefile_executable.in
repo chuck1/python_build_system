@@ -5,6 +5,7 @@ inc        = {{ inc_str }}
 define_str = {{ define_str }}
 binary_file = {{ binary_file }}
 lib_str     = {{ lib_str }}
+lib_dir_str = {{ lib_dir_str }}
 
 COLOR_RESET  = \e[0m
 COLOR_BLUE   = \e[0;34m
@@ -20,11 +21,8 @@ src_in = $(shell find $(src_dir) -name '*.cpp.in')
 #inc_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/processed/include/%.hpp, $(inc_in))
 
 src_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/processed/src/%.cpp,     $(src_in))
-
 obj_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/objects/%.cpp.o, $(src_in))
-
 obj           = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/objects/%.cpp.o, $(src))
-
 
 all: $(binary_file)
 
@@ -32,16 +30,21 @@ s = $(COLOR_BLUE)build$(COLOR_RESET)
 
 cpp_flags = -std=c++0x -Wno-format-security
 
+cpp_args = $(define_str) $(cpp_flags) $(lib_str) $(lib_dir_str) -lpthread
+
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	@g++ -c $^ -o $@ $(inc) $(define_str) $(cpp_flags) $(lib_str)
+	g++ -c $^ -o $@ $(inc) $(cpp_args) 
 
 $(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
 	@echo $(COLOR_BLUE)build $@$(COLOR_RESET)
 	@mkdir -p $(dir $@)
-	@g++ -c $^ -o $@ $(inc) $(define_str) $(cpp_flags) $(lib_str)
+	g++ -c $^ -o $@ $(inc) $(cpp_args)
 
 $(binary_file): $(obj)
-	@g++ $< -o $@ $(lib_str)
+	g++ $< -o $@ $(lib_dir_str) $(lib_str) $(lib_str) $(lib_str) -lpthread
+
+clean:
+	rm -rf $(build_dir)/*
 

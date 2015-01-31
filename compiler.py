@@ -6,6 +6,10 @@ import os
 import inspect
 import myos
 
+#compiler_folder = os.path.dirname(__file__)
+compiler_folder = "/home/chuck/git/chuck1/python/projects/compiler"
+compiler_file = os.path.join(compiler_folder, "compiler.py")
+
 makefiles = []
 config_files = []
 
@@ -67,14 +71,15 @@ def add_global_define(s):
     print s
     global_defines.append(s)
 
-class Base:
-    reqs = []
+class Base(object):
+    def __init__(self):
+        self.reqs = []
     
-    # specific for this project
-    inc_dirs = []
-    lib_dirs = []
-    libs = []
-    
+        # specific for this project
+        self.inc_dirs = []
+        self.lib_dirs = []
+        self.libs = []
+   
     def require(self, o):
         if isinstance(o, list):
             for l in o:
@@ -83,7 +88,7 @@ class Base:
             self.require1(o)
 
     def require1(self, name):
-        #print "require " + name
+        print "require " + name
         # look for .pmake_config file in ~/usr/lib/pmake
         filename = os.path.join("/home/chuck/usr/lib/pmake", name + ".py")
         try:
@@ -122,6 +127,8 @@ class Base:
 
 class Library(Base):
     def __init__(self, name):
+        super(Library, self).__init__()
+
         self.name = name
         
         libraries[name] = self
@@ -142,6 +149,9 @@ class Library(Base):
         self.inc_dirs.append(os.path.join(self.build_dir, "processed", "include"))
 
         self.libs.append(self.name)
+        self.lib_dirs.append(self.build_dir)
+
+        self.binary_file = os.path.join(self.build_dir, "lib" + self.name + ".a")
 
         headers_in = list(myos.glob(".*\\.hpp\\.in", self.inc_dir))
         
@@ -196,16 +206,16 @@ class Library(Base):
         
         print "defines " + define_str
         
-        with open("/home/chuck/git/chuck1/python/projects/compiler/Makefile.in") as f:
+        with open(os.path.join(compiler_folder, "Makefile.in")) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
                 inc_str=inc_str,
                 define_str = define_str,
                 src_dir=self.src_dir,
+                binary_file = self.binary_file,
                 build_dir=self.build_dir
                 )
-        
     
         mkdir(self.build_dir)
         
@@ -218,9 +228,11 @@ class Library(Base):
     
 class Executable(Base):
     def __init__(self, name):
+        super(Executable, self).__init__()
+
+        print "executable " + name
+
         self.name = name
-        
-        libraries[name] = self
         
         self.config_file = get_caller()
 
@@ -238,18 +250,19 @@ class Executable(Base):
 
         self.inc_dirs.append(self.inc_dir)
         self.inc_dirs.append(os.path.join(self.build_dir, "processed", "include"))
+
     def make(self):
         #print "library"
         
-        inc_str = " ".join(list("-I" + s for s in self.inc_dirs))
-    
-        lib_str = " ".join(list("-l" + s for s in self.get_libraries_required()))
+        inc_str     = " ".join(list("-I" + s for s in self.get_include_dirs_required()))
+        lib_str     = " ".join(list("-l" + s for s in self.get_libraries_required()))
+        lib_dir_str = " ".join(list("-L" + s for s in self.get_library_dirs_required()))
 
         define_str = " ".join(list("-D" + d for d in global_defines))
        
         print "defines " + define_str
         
-        with open("/home/chuck/git/chuck1/python/projects/compiler/Makefile_executable.in") as f:
+        with open(os.path.join(compiler_folder, "Makefile_executable.in")) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
@@ -258,9 +271,9 @@ class Executable(Base):
                 src_dir=self.src_dir,
                 build_dir=self.build_dir,
                 binary_file = self.binary_file,
-                lib_str = lib_str
+                lib_str = lib_str,
+                lib_dir_str = lib_dir_str
                 )
-        
     
         mkdir(self.build_dir)
         
@@ -290,14 +303,30 @@ config_files.append(main_config)
 
 #print config_files
 
+
+make_lines   = "\n".join(list("\t@$(MAKE) -f " + m + " --no-print-directory" for m in makefiles))
+clean_lines  = "\n".join(list("\t@$(MAKE) -f " + m + " clean --no-print-directory" for m in makefiles))
+depend_lines = "\n".join(list("\t@$(MAKE) -f " + m + " depend --no-print-directory" for m in makefiles))
+
+config_file_str = " ".join(config_files)
+makefiles_str = " ".join(makefiles)
+
+with open(os.path.join(compiler_folder, "Makefile_master.in"),'r') as f:
+    temp = jinja2.Template(f.read())
+
+
+out = temp.render(
+        makefiles_str = makefiles_str,
+        compiler_file = compiler_file,
+        make_lines = make_lines,
+        clean_lines = clean_lines,
+        depend_lines = depend_lines,
+        config_file_str = config_file_str
+        )
+
 with open("Makefile",'w') as f:
+    f.write(out)
 
-    f.write("all: Makefile\n")
-    for m in makefiles:
-        f.write("\t@$(MAKE) -f " + m + " --no-print-directory\n")
-    
-    f.write("Makefile: " + " ".join(config_files) + "\n")
-    f.write("\t@compiler.py ..")
-
+        
 
 
