@@ -8,6 +8,7 @@ master_config_dir = {{ master_config_dir }}
 
 CC = g++
 
+
 COLOR_RESET  = \e[0m
 COLOR_BLUE   = \e[0;34m
 COLOR_GREEN  = \x1b[32;01m
@@ -36,10 +37,10 @@ CFLAGS = -g -std=c++0x -Wno-format-security
 CARGS = $(CFLAGS) $(inc) $(define_str)
 
 $(src_processed): $(build_dir)/processed/src/%.cpp: $(src_dir)/%.cpp.in
-	@compiler.py $(master_config_dir)
+	@pmake $(master_config_dir)
 
 $(inc_processed): $(build_dir)/processed/inc/%.hpp: $(inc_dir)/%.hpp.in
-	@compiler.py $(master_config_dir)
+	@pmake $(master_config_dir)
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
