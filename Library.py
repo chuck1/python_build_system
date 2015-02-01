@@ -120,7 +120,7 @@ class Library(Base):
         # preprocessing
         headers_in = list(myos.glob(".*\\.hpp\\.in", self.inc_dir))
         
-        self.process(headers_in)
+        #self.process(headers_in)
 
     def register(self):
         libraries[self.name] = self
@@ -137,20 +137,15 @@ class Library(Base):
 
         return file_out
 
-    def process(self, filenames):
-        for filename in filenames:
+    def preprocess(self, filename_in, filename_out):
 
-            o = self.header_in_to_processed(filename)
-
-            with open(filename, 'r') as f:
-                temp = jinja2.Template(f.read())
-
-            out = self.render(temp)
-
-            mkdir(os.path.dirname(o))
-
-            with open(o, 'w') as f:
-                f.write(out)
+        with open(filename_in, 'r') as f:
+            temp = jinja2.Template(f.read())
+        
+        out = self.render(temp)
+        
+        with open(o, 'w') as f:
+            f.write(filename_out)
 
     def render(self, temp):
         

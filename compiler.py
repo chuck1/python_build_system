@@ -109,7 +109,9 @@ class Executable(Base):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('root')
+parser.add_argument('-p', nargs=3)
 args = parser.parse_args()
+
 
 master_config_dir = os.path.abspath(args.root)
 
@@ -135,21 +137,27 @@ depend_clean_lines = "\n".join(list("\t@$(MAKE) -f " + m + " dependclean --no-pr
 config_file_str = " ".join(config_files)
 makefiles_str = " ".join(makefiles)
 
-with open(os.path.join(compiler_folder, "Makefile_master.in"),'r') as f:
-    temp = jinja2.Template(f.read())
+if args.p:
+    l = libraries[p[0]]
 
-out = temp.render(
-        makefiles_str = makefiles_str,
-        compiler_file = compiler_file,
-        make_lines = make_lines,
-        clean_lines = clean_lines,
-        depend_lines = depend_lines,
-        depend_clean_lines = depend_clean_lines,
-        config_file_str = config_file_str
-        )
-
-with open("Makefile",'w') as f:
-    f.write(out)
+    l.preprocess(p[1], p[2])
+    
+else:
+    with open(os.path.join(compiler_folder, "Makefile_master.in"),'r') as f:
+        temp = jinja2.Template(f.read())
+    
+    out = temp.render(
+            makefiles_str = makefiles_str,
+            compiler_file = compiler_file,
+            make_lines = make_lines,
+            clean_lines = clean_lines,
+            depend_lines = depend_lines,
+            depend_clean_lines = depend_clean_lines,
+            config_file_str = config_file_str
+            )
+    
+    with open("Makefile",'w') as f:
+        f.write(out)
 
         
 

@@ -37,10 +37,12 @@ CFLAGS = -g -std=c++0x -Wno-format-security
 CARGS = $(CFLAGS) $(inc) $(define_str)
 
 $(src_processed): $(build_dir)/processed/src/%.cpp: $(src_dir)/%.cpp.in
+	@mkdir -p $(dir $@)
 	@pmake $(master_config_dir)
 
 $(inc_processed): $(build_dir)/processed/inc/%.hpp: $(inc_dir)/%.hpp.in
-	@pmake $(master_config_dir)
+	@mkdir -p $(dir $@)
+	@pmake $(master_config_dir) -p $(project_name) $< $@
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
