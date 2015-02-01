@@ -206,7 +206,7 @@ class Library(Base):
         
         print "defines " + define_str
         
-        with open(os.path.join(compiler_folder, "Makefile.in")) as f:
+        with open(os.path.join(compiler_folder, "Makefile_library_static.in")) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(

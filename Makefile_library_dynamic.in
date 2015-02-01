@@ -28,22 +28,25 @@ obj           = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/objects/%.cpp.o,   
 
 all: $(binary)
 
-s = $(COLOR_BLUE)build$(COLOR_RESET)
-
 CFLAGS = -std=c++0x -Wno-format-security
+
+CARGS = $(inc) $(define_str) $(CFLAGS)
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	@g++ -c $^ -o $@ $(inc) $(define_str) $(CFLAGS)
+	@g++ -fPIC -c $^ -o $@ $(CARGS)
 
 $(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
-	@echo $(COLOR_BLUE)build $@$(COLOR_RESET)
+	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	@g++ -c $^ -o $@ $(inc) $(define_str) $(CFLAGS)
+	@g++ -fPIC -c $^ -o $@ $(CARGS)
 
 $(binary): $(obj)
-	ar rcs $@ $^
+	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
+	@$(CC) -shared -Wl,-soname,$@.1 -o $@.1.0 $^
+	@ln -sf $@.1.0 $@.1
+	@ln -sf $@.1.0 $@
 
 clean:
 	rm -rf $(build_dir)/*

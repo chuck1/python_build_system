@@ -3,10 +3,11 @@ inc_dir    = {{ inc_dir }}
 build_dir  = {{ build_dir }}
 inc        = {{ inc_str }} 
 define_str = {{ define_str }}
-binary_file = {{ binary_file }}
-lib_str     = {{ lib_str }}
-lib_dir_str = {{ lib_dir_str }}
+binary     = {{ binary_file }}
+
 depend_file = $(build_dir)/.depend
+
+CC = g++
 
 COLOR_RESET  = \e[0m
 COLOR_BLUE   = \e[0;34m
@@ -21,42 +22,45 @@ src_in = $(shell find $(src_dir) -name '*.cpp.in')
 
 #inc_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/processed/include/%.hpp, $(inc_in))
 
-src_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/processed/src/%.cpp,     $(src_in))
-obj_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/objects/%.cpp.o, $(src_in))
-obj           = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/objects/%.cpp.o, $(src))
+src_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/processed/src/%.cpp, $(src_in))
+obj_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/objects/%.cpp.o,     $(src_in))
+obj           = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/objects/%.cpp.o,     $(src))
 
-all: $(binary_file)
+all: $(binary)
 
 s = $(COLOR_BLUE)build$(COLOR_RESET)
 
-cpp_flags = -std=c++0x -Wno-format-security
+CFLAGS = -std=c++0x -Wno-format-security
 
-CARGS = $(define_str) $(cpp_flags) $(inc) -lpthread
+CARGS = $(CFLAGS) $(inc) $(define_str)
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	@g++ -c $^ -o $@ $(CARGS) 
+	@$(CC) -c $(CARGS) -o $@ $<
 
 $(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
-	@echo $(COLOR_BLUE)build $@$(COLOR_RESET)
-	@mkdir -p $(dir $@)
-	@g++ -c $^ -o $@ $(inc) $(CARGS)
-
-$(binary_file): $(obj)
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
-	@g++ $< -o $@ $(lib_dir_str) $(lib_str) $(lib_str) $(lib_str) -lpthread
+	@mkdir -p $(dir $@)
+	@$(CC) -c $(CARGS) -o $@ $<
+
+$(binary): $(obj)
+	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
+	@ar rcs $@ $^
 
 clean:
-	rm -rf $(build_dir)/*
+	@rm -rf $(build_dir)/*
 
 depend: $(depend_file)
 
 $(depend_file): $(src)
-	@bash -c "echo -e \"$(COLOR_BLUE)build deps for $(binary_file)$(COLOR_RESET)\""
+	@bash -c "echo -e \"$(COLOR_BLUE)build deps for $(binary)$(COLOR_RESET)\""
 	@rm -f $(depend_file)
-	@$(CC) $(CARGS) -MM $^ -MF $(depend_file)
+	$(CC) -c $(CARGS) -MM $^ -MF $(depend_file)
 
-include $(depend_file)
+#include $(depend_file)
+-include $(wildcard *.d)
+
+
 
 
