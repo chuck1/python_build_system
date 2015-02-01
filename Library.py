@@ -116,8 +116,9 @@ class Library(Base):
 
 
         # append long library name to libs
-        # long name allows build dependency
+        # using long name allows build dependency
         self.libs.append(":" + self.binary_file)
+
         self.lib_dirs.append(self.build_dir)
 
     def register(self):
