@@ -110,32 +110,18 @@ class Library(Base):
         self.inc_dirs.append(os.path.join(self.build_dir, "processed", "inc"))
 
 
+        # static/dynamic dependent
         self.binary_file = os.path.join(self.build_dir, "lib" + self.name + ".a")
+        self.makefile_template = "Makefile_library_static.in"
+
 
         # append long library name to libs
         # long name allows build dependency
         self.libs.append(":" + self.binary_file)
         self.lib_dirs.append(self.build_dir)
 
-        # preprocessing
-        headers_in = list(myos.glob(".*\\.hpp\\.in", self.inc_dir))
-        
-        #self.process(headers_in)
-
     def register(self):
         libraries[self.name] = self
-
-    def header_in_to_processed(self, i):
-        ir = os.path.relpath(i, self.inc_dir)
-        print ir
-        
-        file_out_rel,_ = os.path.splitext(ir)
-
-        print file_out_rel
-       
-        file_out = os.path.join(self.build_dir, "processed", "inc", file_out_rel)
-
-        return file_out
 
     def preprocess(self, filename_in, filename_out):
 
@@ -167,7 +153,7 @@ class Library(Base):
         
         print "defines " + define_str
         
-        with open(os.path.join(compiler_folder, "Makefile_library_static.in")) as f:
+        with open(os.path.join(compiler_folder, self.makefile_template)) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
