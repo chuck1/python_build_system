@@ -8,6 +8,9 @@ all: Makefile {{ makefiles_str }}
 clean:
 {{ clean_lines }}
 
+dependclean:
+{{ depend_clean_lines }}
+
 depend:
 {{ depend_lines }}
 

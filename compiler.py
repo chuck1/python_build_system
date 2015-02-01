@@ -111,6 +111,22 @@ class Base(object):
         for r in self.reqs:
             libs += r.libs
         return libs
+
+    def get_libraries_short_required(self):
+        libs = []
+        for r in self.reqs:
+            for l in r.libs:
+                if l[0] != ":":
+                    libs.append(l)
+        return libs
+
+    def get_libraries_long_required(self):
+        libs = []
+        for r in self.reqs:
+            for l in r.libs:
+                if l[0] == ":":
+                    libs.append(l[1:])
+        return libs
         
     def get_library_dirs_required(self):
         lib_dirs = []
@@ -138,6 +154,7 @@ class Library(Base):
         #print name
         #print self.config_file
         
+
         self.root = get_caller_dir()
         
         self.inc_dir = os.path.join(self.root,"include")
@@ -146,13 +163,17 @@ class Library(Base):
         self.build_dir = os.path.join(self.root,"build")
             
         self.inc_dirs.append(self.inc_dir)
-        self.inc_dirs.append(os.path.join(self.build_dir, "processed", "include"))
+        self.inc_dirs.append(os.path.join(self.build_dir, "processed", "inc"))
 
-        self.libs.append(self.name)
-        self.lib_dirs.append(self.build_dir)
 
         self.binary_file = os.path.join(self.build_dir, "lib" + self.name + ".a")
 
+        # append long library name to libs
+        # long name allows build dependency
+        self.libs.append(":" + self.binary_file)
+        self.lib_dirs.append(self.build_dir)
+
+        # preprocessing
         headers_in = list(myos.glob(".*\\.hpp\\.in", self.inc_dir))
         
         self.process(headers_in)
@@ -168,7 +189,7 @@ class Library(Base):
 
         print file_out_rel
        
-        file_out = os.path.join(self.build_dir, "processed", "include", file_out_rel)
+        file_out = os.path.join(self.build_dir, "processed", "inc", file_out_rel)
 
         return file_out
 
@@ -190,9 +211,10 @@ class Library(Base):
     def render(self, temp):
         
         out = temp.render(
-            src_dir = self.src_dir,
-            build_dir = self.build_dir
-            )
+                name = self.name,
+                src_dir = self.src_dir,
+                build_dir = self.build_dir
+                )
 
         return out
 
@@ -212,9 +234,11 @@ class Library(Base):
         out = temp.render(
                 inc_str=inc_str,
                 define_str = define_str,
-                src_dir=self.src_dir,
+                inc_dir = self.inc_dir,
+                src_dir = self.src_dir,
                 binary_file = self.binary_file,
-                build_dir=self.build_dir
+                build_dir=self.build_dir,
+                master_config_dir = master_config_dir
                 )
     
         mkdir(self.build_dir)
@@ -249,14 +273,16 @@ class Executable(Base):
         self.binary_file = name
 
         self.inc_dirs.append(self.inc_dir)
-        self.inc_dirs.append(os.path.join(self.build_dir, "processed", "include"))
+        self.inc_dirs.append(os.path.join(self.build_dir, "processed", "inc"))
 
     def make(self):
         #print "library"
         
-        inc_str     = " ".join(list("-I" + s for s in self.get_include_dirs_required()))
-        lib_str     = " ".join(list("-l" + s for s in self.get_libraries_required()))
-        lib_dir_str = " ".join(list("-L" + s for s in self.get_library_dirs_required()))
+        inc_str       = " ".join(list("-I" + s for s in self.get_include_dirs_required()))
+        lib_short_str = " ".join(list(self.get_libraries_short_required()))
+        lib_long_str  = " ".join(list(self.get_libraries_long_required()))
+        lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
+        lib_dir_str   = " ".join(list("-L" + s for s in self.get_library_dirs_required()))
 
         define_str = " ".join(list("-D" + d for d in global_defines))
        
@@ -266,12 +292,14 @@ class Executable(Base):
             temp = jinja2.Template(f.read())
         
         out = temp.render(
-                inc_str=inc_str,
+                inc_str = inc_str,
                 define_str = define_str,
-                src_dir=self.src_dir,
+                inc_dir = self.inc_dir,
+                src_dir = self.src_dir,
                 build_dir=self.build_dir,
                 binary_file = self.binary_file,
-                lib_str = lib_str,
+                lib_long_str = lib_long_str,
+                lib_link_str = lib_link_str,
                 lib_dir_str = lib_dir_str
                 )
     
@@ -290,6 +318,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('root')
 args = parser.parse_args()
 
+master_config_dir = os.path.abspath(args.root)
+
 main_config = os.path.join(args.root, "config.py")
 
 execfile(main_config)
@@ -307,6 +337,7 @@ config_files.append(main_config)
 make_lines   = "\n".join(list("\t@$(MAKE) -f " + m + " --no-print-directory" for m in makefiles))
 clean_lines  = "\n".join(list("\t@$(MAKE) -f " + m + " clean --no-print-directory" for m in makefiles))
 depend_lines = "\n".join(list("\t@$(MAKE) -f " + m + " depend --no-print-directory" for m in makefiles))
+depend_clean_lines = "\n".join(list("\t@$(MAKE) -f " + m + " dependclean --no-print-directory" for m in makefiles))
 
 config_file_str = " ".join(config_files)
 makefiles_str = " ".join(makefiles)
@@ -314,13 +345,13 @@ makefiles_str = " ".join(makefiles)
 with open(os.path.join(compiler_folder, "Makefile_master.in"),'r') as f:
     temp = jinja2.Template(f.read())
 
-
 out = temp.render(
         makefiles_str = makefiles_str,
         compiler_file = compiler_file,
         make_lines = make_lines,
         clean_lines = clean_lines,
         depend_lines = depend_lines,
+        depend_clean_lines = depend_clean_lines,
         config_file_str = config_file_str
         )
 

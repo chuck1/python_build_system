@@ -4,9 +4,10 @@ build_dir  = {{ build_dir }}
 inc        = {{ inc_str }} 
 define_str = {{ define_str }}
 binary_file = {{ binary_file }}
-lib_str     = {{ lib_str }}
-lib_dir_str = {{ lib_dir_str }}
-depend_file = $(build_dir)/.depend
+lib_long_str = {{ lib_long_str }}
+lib_link_str = {{ lib_link_str }}
+lib_dir_str  = {{ lib_dir_str }}
+depend_file  = $(build_dir)/.depend
 
 COLOR_RESET  = \e[0m
 COLOR_BLUE   = \e[0;34m
@@ -29,7 +30,7 @@ all: $(binary_file)
 
 s = $(COLOR_BLUE)build$(COLOR_RESET)
 
-cpp_flags = -std=c++0x -Wno-format-security
+cpp_flags = -g -std=c++0x -Wno-format-security
 
 CARGS = $(define_str) $(cpp_flags) $(inc) -lpthread
 
@@ -43,9 +44,11 @@ $(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
 	@mkdir -p $(dir $@)
 	@g++ -c $^ -o $@ $(inc) $(CARGS)
 
+$(binary_file): $(lib_long_str)
+
 $(binary_file): $(obj)
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
-	@g++ $< -o $@ $(lib_dir_str) $(lib_str) $(lib_str) $(lib_str) -lpthread
+	@g++ $< -o $@ $(lib_dir_str) $(lib_link_str) $(lib_link_str) $(lib_link_str) -lpthread
 
 clean:
 	rm -rf $(build_dir)/*
