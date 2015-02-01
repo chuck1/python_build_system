@@ -7,6 +7,8 @@ import inspect
 import myos
 
 from Library import *
+from Static import *
+from Dynamic import *
 
 #compiler_folder = os.path.dirname(__file__)
 
@@ -75,7 +77,8 @@ class Executable(Base):
         lib_short_str = " ".join(list(self.get_libraries_short_required()))
         lib_long_str  = " ".join(list(self.get_libraries_long_required()))
         lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
-        lib_dir_str   = " ".join(list("-L" + s for s in self.get_library_dirs_required()))
+
+        lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
 
         define_str = " ".join(list("-D" + d for d in global_defines))
        

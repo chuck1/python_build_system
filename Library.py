@@ -109,17 +109,11 @@ class Library(Base):
         self.inc_dirs.append(self.inc_dir)
         self.inc_dirs.append(os.path.join(self.build_dir, "processed", "inc"))
 
-
-        # static/dynamic dependent
-        self.binary_file = os.path.join(self.build_dir, "lib" + self.name + ".a")
-        self.makefile_template = "Makefile_library_static.in"
-
-
         # append long library name to libs
         # using long name allows build dependency
-        self.libs.append(":" + self.binary_file)
+        self.libs.append(":" + self.get_binary_file())
 
-        self.lib_dirs.append(self.build_dir)
+        self.lib_dirs.append(self.get_lib_dir_arg())
 
     def register(self):
         libraries[self.name] = self
@@ -154,7 +148,7 @@ class Library(Base):
         
         print "defines " + define_str
         
-        with open(os.path.join(compiler_folder, self.makefile_template)) as f:
+        with open(os.path.join(compiler_folder, self.get_makefile_template())) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
@@ -162,7 +156,7 @@ class Library(Base):
                 define_str = define_str,
                 inc_dir = self.inc_dir,
                 src_dir = self.src_dir,
-                binary_file = self.binary_file,
+                binary_file = self.get_binary_file(),
                 build_dir=self.build_dir,
                 master_config_dir = master_config_dir
                 )
