@@ -10,7 +10,13 @@ class Static(Library):
     def get_makefile_template(self):
         return "Makefile_library_static.in"
 
+    def get_makefile_filename_out(self):
+        return os.path.join(self.build_dir, "Makefile_static.mk")
+
     def get_lib_dir_arg(self):
         return "-L" + self.build_dir
+
+    def register(self):
+        libraries[self.name + 'static'] = self
 
 

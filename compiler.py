@@ -12,7 +12,7 @@ from Dynamic import *
 
 #compiler_folder = os.path.dirname(__file__)
 
-
+global master_config_dir
 
 def include(foldername):
     #print inspect.getfile(inspect.currentframe())
@@ -84,7 +84,7 @@ class Executable(Base):
        
         print "defines " + define_str
         
-        with open(os.path.join(compiler_folder, "Makefile_executable.in")) as f:
+        with open(os.path.join(compiler_dir, "Makefile_executable.in")) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
@@ -116,7 +116,8 @@ parser.add_argument('-p', nargs=3)
 args = parser.parse_args()
 
 
-master_config_dir = os.path.abspath(args.root)
+Config.master_config_dir = os.path.abspath(args.root)
+#print "master_config_dir",master_config_dir
 
 main_config = os.path.join(args.root, "config.py")
 
@@ -141,12 +142,12 @@ config_file_str = " ".join(config_files)
 makefiles_str = " ".join(makefiles)
 
 if args.p:
-    l = libraries[p[0]]
+    l = libraries[args.p[0]]
 
-    l.preprocess(p[1], p[2])
+    l.preprocess(args.p[1], args.p[2])
     
 else:
-    with open(os.path.join(compiler_folder, "Makefile_master.in"),'r') as f:
+    with open(os.path.join(compiler_dir, "Makefile_master.in"),'r') as f:
         temp = jinja2.Template(f.read())
     
     out = temp.render(

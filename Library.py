@@ -3,10 +3,11 @@ import myos
 
 from func import *
 
-master_config_dir = None
+class Config(object):
+    master_config_dir = None
 
-compiler_folder = "/home/chuck/git/chuck1/python_build_system"
-compiler_file = os.path.join(compiler_folder, "compiler.py")
+compiler_dir = "/home/chuck/git/chuck1/python_build_system"
+compiler_file = os.path.join(compiler_dir, "compiler.py")
 
 makefiles = []
 config_files = []
@@ -23,25 +24,27 @@ class Base(object):
         self.inc_dirs = []
         self.lib_dirs = []
         self.libs = []
+
+        self.root = get_caller_dir(4)
    
-    def require(self, o):
+    def require(self, o, lib_type = 'static'):
         if isinstance(o, list):
             for l in o:
-                self.require1(l)
+                self.require1(l, lib_type)
         else:
-            self.require1(o)
+            self.require1(o, lib_type)
 
-    def require1(self, name):
+    def require1(self, name, lib_type):
         print "require " + name
         # look for .pmake_config file in ~/usr/lib/pmake
         filename = os.path.join("/home/chuck/usr/lib/pmake", name + ".py")
         try:
-            l = libraries[name]
+            l = libraries[name + lib_type]
         except:
             #print libraries
             execfile(filename)
-            l = libraries[name]
-
+            l = libraries[name + lib_type]
+        
         self.reqs.append(l) 
 
         # get info from required library
@@ -90,16 +93,15 @@ class Library(Base):
         super(Library, self).__init__()
 
         self.name = name
-        
-        libraries[name] = self
+
+        self.register()
+
         
         self.config_file = get_caller()
 
         #print name
         #print self.config_file
-        
 
-        self.root = get_caller_dir()
         
         self.inc_dir = os.path.join(self.root,"include")
         self.src_dir = os.path.join(self.root,"src")
@@ -119,14 +121,15 @@ class Library(Base):
         libraries[self.name] = self
 
     def preprocess(self, filename_in, filename_out):
+        print "preprocess",filename_in,filename_out
 
         with open(filename_in, 'r') as f:
             temp = jinja2.Template(f.read())
         
         out = self.render(temp)
         
-        with open(o, 'w') as f:
-            f.write(filename_out)
+        with open(filename_out, 'w') as f:
+            f.write(out)
 
     def render(self, temp):
         
@@ -145,10 +148,15 @@ class Library(Base):
         inc_str = " ".join(list("-I" + s for s in (self.get_include_dirs_required() + self.inc_dirs)))
     
         define_str = " ".join(list("-D" + d for d in global_defines))
+
+        # only for dynamic
+        lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
+
+        makefile = self.get_makefile_filename_out()
         
-        print "defines " + define_str
+        #print "defines " + define_str
         
-        with open(os.path.join(compiler_folder, self.get_makefile_template())) as f:
+        with open(os.path.join(compiler_dir, self.get_makefile_template())) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
@@ -158,12 +166,15 @@ class Library(Base):
                 src_dir = self.src_dir,
                 binary_file = self.get_binary_file(),
                 build_dir=self.build_dir,
-                master_config_dir = master_config_dir
+                master_config_dir = Config.master_config_dir,
+                compiler_dir = compiler_dir,
+                lib_link_str = lib_link_str,
+                project_name = self.name,
+                makefile = makefile
                 )
     
         mkdir(self.build_dir)
         
-        makefile = os.path.join(self.build_dir, "Makefile")
         
         makefiles.append(makefile)
     

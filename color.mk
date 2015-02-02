@@ -1,0 +1,6 @@
+COLOR_RESET  = \e[0m
+COLOR_BLUE   = \e[0;34m
+COLOR_GREEN  = \x1b[32;01m
+COLOR_RED    = \x1b[31;01m
+COLOR_YELLOW = \x1b[33;01m
+

@@ -10,8 +10,13 @@ class Dynamic(Library):
     def get_makefile_template(self):
         return "Makefile_library_dynamic.in"
 
+    def get_makefile_filename_out(self):
+        return os.path.join(self.build_dir, "Makefile_dynamic.mk")
+
     def get_lib_dir_arg(self):
         return "-Wl,-rpath," + self.build_dir
 
-
+    def register(self):
+        libraries[self.name + 'dynamic'] = self
+    
 
