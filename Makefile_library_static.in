@@ -15,6 +15,7 @@ CC = g++
 include $(compiler_dir)/color.mk
 include $(compiler_dir)/cpp_library.mk
 
+
 .PHONY: all
 
 all: $(binary)
@@ -26,6 +27,8 @@ CFLAGS = -g -std=c++0x -Wno-format-security -fPIC
 
 CARGS = $(CFLAGS) $(inc) $(define_str)
 
+MAKEDEPEND = $(CC) -c $(CARGS) -MM $^ -MF $(build_dir)/depends/$*.cpp.d -MT $(build_dir)/objects/$*.cpp.o
+
 include $(compiler_dir)/process.mk
 
 $(obj): $(inc_processed) 
@@ -33,11 +36,13 @@ $(obj): $(inc_processed)
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
+	@$(MAKEDEPEND)
 	@$(CC) -c $(CARGS) -o $@ $<
 
 $(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
+	@$(MAKEDEPEND)
 	@$(CC) -c $(CARGS) -o $@ $<
 
 $(binary): $(makefile)

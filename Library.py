@@ -134,9 +134,10 @@ class Library(Base):
     def render(self, temp):
         
         out = temp.render(
+                build_dir = self.build_dir,
+                master_config_dir = Config.master_config_dir,
                 name = self.name,
                 src_dir = self.src_dir,
-                build_dir = self.build_dir
                 )
 
         return out
@@ -150,6 +151,8 @@ class Library(Base):
         define_str = " ".join(list("-D" + d for d in global_defines))
 
         # only for dynamic
+        lib_short_str = " ".join(list(self.get_libraries_short_required()))
+        lib_long_str  = " ".join(list(self.get_libraries_long_required()))
         lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
 
         makefile = self.get_makefile_filename_out()
@@ -168,6 +171,7 @@ class Library(Base):
                 build_dir=self.build_dir,
                 master_config_dir = Config.master_config_dir,
                 compiler_dir = compiler_dir,
+                lib_long_str = lib_long_str,
                 lib_link_str = lib_link_str,
                 project_name = self.name,
                 makefile = makefile
