@@ -36,12 +36,14 @@ $(obj): $(inc_processed)
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $(build_dir)/depends/$*.cpp.d)
 	@$(MAKEDEPEND)
 	@$(CC) -c $(CARGS) -o $@ $<
 
 $(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $(build_dir)/depends/$*.cpp.d)
 	@$(MAKEDEPEND)
 	@$(CC) -c $(CARGS) -o $@ $<
 
@@ -53,7 +55,8 @@ $(binary): $(obj)
 	@ar rcs $@ $(filter %.cpp.o, $^)
 
 clean:
-	@rm -rf $(build_dir)/*
+	@rm -rf $(build_dir)/objects/*
+	@rm -rf $(build_dir)/depends/*
 
 include $(compiler_dir)/depend.mk
 include $(compiler_dir)/help.mk
