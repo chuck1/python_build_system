@@ -154,6 +154,7 @@ class Library(Base):
         lib_short_str = " ".join(list(self.get_libraries_short_required()))
         lib_long_str  = " ".join(list(self.get_libraries_long_required()))
         lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
+        lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
 
         makefile = self.get_makefile_filename_out()
         
@@ -173,6 +174,7 @@ class Library(Base):
                 compiler_dir = compiler_dir,
                 lib_long_str = lib_long_str,
                 lib_link_str = lib_link_str,
+                lib_dir_str  = lib_dir_str,
                 project_name = self.name,
                 makefile = makefile
                 )
