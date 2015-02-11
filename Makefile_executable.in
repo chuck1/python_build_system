@@ -32,16 +32,22 @@ s = $(COLOR_BLUE)build$(COLOR_RESET)
 
 cpp_flags = -g -std=c++0x -Wno-format-security
 
+
 CARGS = $(define_str) $(cpp_flags) $(inc) -lpthread
+
+MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(build_dir)/depends/$*.cpp.d -MT $(build_dir)/objects/$*.cpp.o
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
+	@mkdir -p $(dir $(build_dir)/depends/$*.cpp.d)
+	@$(MAKEDEPEND)
 	@g++ -c $^ -o $@ $(CARGS) 
 
 $(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
 	@echo $(COLOR_BLUE)build $@$(COLOR_RESET)
 	@mkdir -p $(dir $@)
+	@$(MAKEDEPEND)
 	@g++ -c $^ -o $@ $(inc) $(CARGS)
 
 $(binary_file): $(lib_long_str)

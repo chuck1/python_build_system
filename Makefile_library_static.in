@@ -10,6 +10,9 @@ makefile          = {{ makefile }}
 project_name      = {{ project_name }}
 library_type      = static
 
+depends_dir = $(build_dir)/depends
+objects_dir = $(build_dir)/objects
+
 CC = g++
 
 include $(compiler_dir)/color.mk
@@ -27,7 +30,7 @@ CFLAGS = -g -std=c++0x -Wno-format-security -fPIC
 
 CARGS = $(CFLAGS) $(inc) $(define_str)
 
-MAKEDEPEND = $(CC) -c $(CARGS) -MM $^ -MF $(build_dir)/depends/$*.cpp.d -MT $(build_dir)/objects/$*.cpp.o
+MAKEDEPEND = $(CC) -c $(CARGS) -MM $^ -MF $(depends_dir)/$*.cpp.d -MT $(objects_dir)/$*.cpp.o
 
 include $(compiler_dir)/process.mk
 
@@ -58,9 +61,18 @@ clean:
 	@rm -rf $(build_dir)/objects/*
 	@rm -rf $(build_dir)/depends/*
 
-include $(compiler_dir)/depend.mk
 include $(compiler_dir)/help.mk
 
+dependclean:
+	@rm -rf $(build_dir)/depends/*
+
+$(dep_files): $(depends_dir)/%.cpp.d: $(src_dir)/%.cpp
+	@bash -c "echo -e \"$(COLOR_BLUE)build deps $@$(COLOR_RESET)\""
+	@mkdir -p $(dir $(depends_dir)/$*.cpp.d)
+	@$(MAKEDEPEND)
+
+
+include $(dep_files)
 
 
 

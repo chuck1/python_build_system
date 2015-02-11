@@ -62,7 +62,16 @@ $(binary): $(obj)
 clean:
 	rm -rf $(build_dir)/*
 
-include $(compiler_dir)/depend.mk
 include $(compiler_dir)/help.mk
+
+dependclean:
+	@rm -rf $(build_dir)/depends/*
+
+$(dep_files): $(depends_dir)/%.cpp.d: $(src_dir)/%.cpp
+	@bash -c "echo -e \"$(COLOR_BLUE)build deps $@$(COLOR_RESET)\""
+	@mkdir -p $(dir $(depends_dir)/$*.cpp.d)
+	@$(MAKEDEPEND)
+
+include $(dep_files)
 
 
