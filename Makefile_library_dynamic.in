@@ -13,7 +13,7 @@ makefile          = {{ makefile }}
 project_name      = {{ project_name }}
 library_type      = dynamic
 
-depend_file = $(build_dir)/.depend
+depends_dir = $(build_dir)/depends
 
 CC = g++
 
@@ -70,7 +70,7 @@ dependclean:
 $(dep_files): $(depends_dir)/%.cpp.d: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build deps $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $(depends_dir)/$*.cpp.d)
-	@$(MAKEDEPEND)
+	$(MAKEDEPEND)
 
 include $(dep_files)
 
