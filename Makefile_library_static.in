@@ -30,11 +30,17 @@ CFLAGS = -g -std=c++0x -Wno-format-security -fPIC
 
 CARGS = $(CFLAGS) $(inc) $(define_str)
 
-MAKEDEPEND = $(CC) -c $(CARGS) -MM $^ -MF $(depends_dir)/$*.cpp.d -MT $(objects_dir)/$*.cpp.o
+MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(depends_dir)/$*.cpp.d -MT $(objects_dir)/$*.cpp.o
+GCH = $(CC) -c -x c++-header
 
 include $(compiler_dir)/process.mk
 
-$(obj): $(inc_processed) 
+$(pch_files): $(inc_dir)/%.hpp.gch: $(inc_dir)/%.hpp
+	@bash -c "echo -e \"$(COLOR_BLUE)pch $@$(COLOR_RESET)\""
+	@mkdir -p $(dir $@)
+	@$(GCH) $(CARGS) -o $@ $<
+
+$(obj): $(inc_processed) $(pch_files)
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""

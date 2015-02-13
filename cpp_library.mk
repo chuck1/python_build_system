@@ -1,5 +1,8 @@
 
-src    = $(shell find $(src_dir) -name '*.cpp')
+src       = $(shell find $(src_dir) -name '*.cpp')
+
+inc_files = $(shell find $(inc_dir) -name '*.hpp')
+
 src_in = $(shell find $(src_dir) -name '*.cpp.in')
 inc_in = $(shell find $(inc_dir) -name '*.hpp.in')
 
@@ -8,4 +11,12 @@ src_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/processed/src/%.cpp
 obj_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/objects/%.cpp.o,     $(src_in))
 obj           = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/objects/%.cpp.o,     $(src))
 dep_files     = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/depends/%.cpp.d,     $(src))
+
+pch_files     = $(patsubst $(inc_dir)/%.hpp,    $(inc_dir)/%.hpp.gch,             $(inc_files))
+
+
+
+
+
+
 
