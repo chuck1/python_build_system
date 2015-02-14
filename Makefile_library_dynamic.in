@@ -1,3 +1,4 @@
+
 src_dir    = {{ src_dir }}
 inc_dir    = {{ inc_dir }}
 build_dir  = {{ build_dir }}/dynamic
@@ -15,39 +16,40 @@ library_type      = dynamic
 
 depends_dir = $(build_dir)/depends
 
-CC = g++
-
 include $(compiler_dir)/color.mk
-include $(compiler_dir)/cpp_library.mk
+
+CC = g++ -fPIC
+CFLAGS = -std=c++0x -Wno-format-security -Wall -Werror -Wno-unknown-pragmas -Wno-unused-local-typedefs
+
+CARGS = $(inc) $(define_str) $(CFLAGS)
+
+MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(build_dir)/depends/$*.cpp.d -MT $(build_dir)/objects/$*.cpp.o
 
 .PHONY: all
 
 all: $(binary)
 	@bash -c "echo -e \"$(COLOR_BLUE)$(build_dir)$(COLOR_RESET)\""
 
-CFLAGS = -std=c++0x -Wno-format-security -Wall
+$(obj): $(makefile) $(lib_long_str)
 
-CARGS = $(inc) $(define_str) $(CFLAGS)
-
-MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(build_dir)/depends/$*.cpp.d -MT $(build_dir)/objects/$*.cpp.o
+include $(compiler_dir)/cpp_library.mk
 
 include $(compiler_dir)/process.mk
 
-$(obj): $(makefile) $(lib_long_str)
 
-$(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
-	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
-	@mkdir -p $(dir $@)
-	@mkdir -p $(dir $(build_dir)/depends/$*.cpp.d)
-	@$(MAKEDEPEND)
-	@g++ -fPIC -c $(CARGS) -o $@ $<
 
-$(obj_processed): $(build_dir)/objects/%.cpp.o: $(build_dir)/processed/src/%.cpp
-	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
-	@mkdir -p $(dir $@)
-	@mkdir -p $(dir $(build_dir)/depends/$*.cpp.d)
-	@$(MAKEDEPEND)
-	@g++ -fPIC -c $(CARGS) -o $@ $<
+
+
+
+
+
+
+
+
+
+
+
+
 
 link_arg = -Wl,-whole-archive $(lib_link_str) -Wl,-no-whole-archive
 
@@ -70,7 +72,7 @@ dependclean:
 $(dep_files): $(depends_dir)/%.cpp.d: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build deps $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $(depends_dir)/$*.cpp.d)
-	$(MAKEDEPEND)
+	@$(MAKEDEPEND)
 
 include $(dep_files)
 
