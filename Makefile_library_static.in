@@ -26,7 +26,7 @@ all: $(binary)
 
 s = $(COLOR_BLUE)build$(COLOR_RESET)
 
-CFLAGS = -g -std=c++0x -Wno-format-security -fPIC
+CFLAGS = -g -std=c++0x -Wno-format-security -fPIC -Wall
 
 CARGS = $(CFLAGS) $(inc) $(define_str)
 

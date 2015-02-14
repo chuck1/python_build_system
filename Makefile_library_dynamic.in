@@ -25,7 +25,7 @@ include $(compiler_dir)/cpp_library.mk
 all: $(binary)
 	@bash -c "echo -e \"$(COLOR_BLUE)$(build_dir)$(COLOR_RESET)\""
 
-CFLAGS = -std=c++0x -Wno-format-security
+CFLAGS = -std=c++0x -Wno-format-security -Wall
 
 CARGS = $(inc) $(define_str) $(CFLAGS)
 
