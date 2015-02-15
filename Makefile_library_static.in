@@ -13,6 +13,7 @@ library_type      = static
 
 depends_dir = $(build_dir)/depends
 objects_dir = $(build_dir)/objects
+process_dir = $(build_dir)/process
 
 include $(compiler_dir)/color.mk
 
@@ -33,15 +34,6 @@ MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(depends_dir)/$*.cpp.d -MT $(objects_
 
 include $(compiler_dir)/cpp_library.mk
 
-include $(compiler_dir)/process.mk
-
-
-
-
-
-
-
-
 
 
 
@@ -56,19 +48,11 @@ $(binary): $(obj)
 clean:
 	@rm -rf $(build_dir)/objects/*
 	@rm -rf $(build_dir)/depends/*
+	@rm -rf $(binary)
 
 include $(compiler_dir)/help.mk
+include $(compiler_dir)/depend.mk
 
-dependclean:
-	@rm -rf $(build_dir)/depends/*
-
-$(dep_files): $(depends_dir)/%.cpp.d: $(src_dir)/%.cpp
-	@bash -c "echo -e \"$(COLOR_BLUE)build deps $@$(COLOR_RESET)\""
-	@mkdir -p $(dir $(depends_dir)/$*.cpp.d)
-	@$(MAKEDEPEND)
-
-
-include $(dep_files)
 
 
 

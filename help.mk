@@ -9,7 +9,9 @@ help:
 	@echo
 	@echo $(inc_in)
 	@echo
-	@echo $(inc_processed)
+	@echo $(inc_process)
+	@echo
+	@echo $(pch_in_files)
 	@echo
 	@echo $(src_in)
 

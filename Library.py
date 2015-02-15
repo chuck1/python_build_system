@@ -96,12 +96,10 @@ class Library(Base):
 
         self.register()
 
-        
         self.config_file = get_caller()
 
         #print name
         #print self.config_file
-
         
         self.inc_dir = os.path.join(self.root,"include")
         self.src_dir = os.path.join(self.root,"src")
@@ -109,7 +107,7 @@ class Library(Base):
         self.build_dir = os.path.join(self.root,"build")
             
         self.inc_dirs.append(self.inc_dir)
-        self.inc_dirs.append(os.path.join(self.build_dir, "processed", "inc"))
+        self.inc_dirs.append(os.path.join(self.build_dir, "process", "inc"))
 
         # append long library name to libs
         # using long name allows build dependency

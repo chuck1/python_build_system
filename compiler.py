@@ -68,7 +68,7 @@ class Executable(Base):
         self.binary_file = name
 
         self.inc_dirs.append(self.inc_dir)
-        self.inc_dirs.append(os.path.join(self.build_dir, "processed", "inc"))
+        self.inc_dirs.append(os.path.join(self.build_dir, "process", "inc"))
 
     def make(self):
         #print "library"
@@ -96,7 +96,8 @@ class Executable(Base):
                 binary_file = self.binary_file,
                 lib_long_str = lib_long_str,
                 lib_link_str = lib_link_str,
-                lib_dir_str = lib_dir_str
+                lib_dir_str = lib_dir_str,
+                compiler_dir = compiler_dir
                 )
     
         mkdir(self.build_dir)
