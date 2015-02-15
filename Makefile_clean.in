@@ -15,12 +15,8 @@ process_dir = $(build_dir)/process
 
 include $(compiler_dir)/color.mk
 
-clean:
-	@rm -rf $(process_dir)/*
-	@rm -rf $(objects_dir)/*
-	@rm -rf $(depends_dir)/*
-	@rm -rf $(binary)/*
 
+include $(compiler_dir)/clean.mk
 include $(compiler_dir)/help.mk
 
 

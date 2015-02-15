@@ -45,11 +45,8 @@ $(binary): $(obj)
 	@mkdir -p $(dir $@)
 	@ar rcs $@ $(filter %.cpp.o, $^)
 
-clean:
-	@rm -rf $(build_dir)/objects/*
-	@rm -rf $(build_dir)/depends/*
-	@rm -rf $(binary)
 
+include $(compiler_dir)/clean.mk
 include $(compiler_dir)/help.mk
 include $(compiler_dir)/depend.mk
 

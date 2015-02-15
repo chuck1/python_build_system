@@ -140,6 +140,45 @@ class Library(Base):
 
         return out
 
+    def render2(self, fn_in, fn_out):
+        #print "library"
+        
+        inc_str = " ".join(list("-I" + s for s in (self.get_include_dirs_required() + self.inc_dirs)))
+    
+        define_str = " ".join(list("-D" + d for d in global_defines))
+
+        # only for dynamic
+        lib_short_str = " ".join(list(self.get_libraries_short_required()))
+        lib_long_str  = " ".join(list(self.get_libraries_long_required()))
+        lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
+        lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
+
+        makefile = self.get_makefile_filename_out()
+        
+        #print "defines " + define_str
+        
+        with open(fn_in, 'r') as f:
+            temp = jinja2.Template(f.read())
+        
+        out = temp.render(
+                inc_str=inc_str,
+                define_str = define_str,
+                inc_dir = self.inc_dir,
+                src_dir = self.src_dir,
+                binary_file = self.get_binary_file(),
+                build_dir=self.build_dir,
+                master_config_dir = Config.master_config_dir,
+                compiler_dir = compiler_dir,
+                lib_long_str = lib_long_str,
+                lib_link_str = lib_link_str,
+                lib_dir_str  = lib_dir_str,
+                project_name = self.name,
+                makefile = makefile
+                )
+    
+        with open(fn_out,'w') as f:
+            f.write(out)
+       
 
     def make(self):
         #print "library"

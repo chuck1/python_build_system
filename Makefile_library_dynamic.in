@@ -50,11 +50,8 @@ $(binary): $(obj)
 	@ln -sf $@.1.0 $@.1
 	@ln -sf $@.1.0 $@
 
-clean:
-	@rm -rf $(build_dir)/objects/*
-	@rm -rf $(build_dir)/depends/*
-	@rm -rf $(binary)
 
+include $(compiler_dir)/clean.mk
 include $(compiler_dir)/help.mk
 include $(compiler_dir)/depend.mk
 

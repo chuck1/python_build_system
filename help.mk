@@ -12,6 +12,8 @@ help:
 	@echo $(inc_process)
 	@echo
 	@echo $(pch_in_files)
+	@echo pch_files
+	@echo $(pch_files)
 	@echo
 	@echo $(src_in)
 
