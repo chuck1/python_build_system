@@ -1,11 +1,11 @@
 
-src_dir    = {{ src_dir }}
-inc_dir    = {{ inc_dir }}
-build_dir  = {{ build_dir }}/dynamic
-inc        = {{ inc_str }} 
-define_str = {{ define_str }}
-binary     = {{ binary_file }}
-compiler_dir = {{ compiler_dir }}
+src_dir           = {{ src_dir }}
+inc_dir           = {{ inc_dir }}
+build_dir         = {{ build_dir }}
+inc               = {{ inc_str }} 
+define_str        = {{ define_str }}
+binary            = {{ binary_file }}
+compiler_dir      = {{ compiler_dir }}
 master_config_dir = {{ master_config_dir }}
 lib_long_str      = {{ lib_long_str }}
 lib_link_str      = {{ lib_link_str }}

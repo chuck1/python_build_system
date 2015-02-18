@@ -15,7 +15,6 @@ config_files = []
 libraries = {}
 global_defines = []
 
-
 class Base(object):
     def __init__(self):
         self.reqs = []
@@ -132,10 +131,10 @@ class Library(Base):
     def render(self, temp):
         
         out = temp.render(
-                build_dir = self.build_dir,
+                build_dir         = self.get_build_dir(),
+                src_dir           = self.src_dir,
                 master_config_dir = Config.master_config_dir,
-                name = self.name,
-                src_dir = self.src_dir,
+                name              = self.name,
                 )
 
         return out
@@ -182,6 +181,8 @@ class Library(Base):
         #print "library"
 
         mkdir(os.path.dirname(self.get_makefile_filename_out()))
+
+        makefiles.append(self.get_makefile_filename_out())
 
         self.render2(
                 os.path.join(compiler_dir, self.get_makefile_template()),
