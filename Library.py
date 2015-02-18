@@ -104,10 +104,10 @@ class Library(Base):
         self.inc_dir = os.path.join(self.root,"include")
         self.src_dir = os.path.join(self.root,"src")
 
-        self.build_dir = os.path.join(self.root,"build")
+        #self.build_dir = os.path.join(self.root,"build")
             
         self.inc_dirs.append(self.inc_dir)
-        self.inc_dirs.append(os.path.join(self.build_dir, "process", "inc"))
+        self.inc_dirs.append(os.path.join(self.get_build_dir(), "process", "inc"))
 
         # append long library name to libs
         # using long name allows build dependency
@@ -153,27 +153,25 @@ class Library(Base):
         lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
         lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
 
-        makefile = self.get_makefile_filename_out()
-        
         #print "defines " + define_str
         
         with open(fn_in, 'r') as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
-                inc_str=inc_str,
-                define_str = define_str,
-                inc_dir = self.inc_dir,
-                src_dir = self.src_dir,
-                binary_file = self.get_binary_file(),
-                build_dir=self.build_dir,
+                inc_str           = inc_str,
+                define_str        = define_str,
+                inc_dir           = self.inc_dir,
+                src_dir           = self.src_dir,
+                binary_file       = self.get_binary_file(),
+                build_dir         = self.get_build_dir(),
                 master_config_dir = Config.master_config_dir,
-                compiler_dir = compiler_dir,
-                lib_long_str = lib_long_str,
-                lib_link_str = lib_link_str,
-                lib_dir_str  = lib_dir_str,
-                project_name = self.name,
-                makefile = makefile
+                compiler_dir      = compiler_dir,
+                lib_long_str      = lib_long_str,
+                lib_link_str      = lib_link_str,
+                lib_dir_str       = lib_dir_str,
+                project_name      = self.name,
+                makefile          = self.get_makefile_filename_out()
                 )
     
         with open(fn_out,'w') as f:
@@ -182,45 +180,12 @@ class Library(Base):
 
     def make(self):
         #print "library"
-        
-        inc_str = " ".join(list("-I" + s for s in (self.get_include_dirs_required() + self.inc_dirs)))
-    
-        define_str = " ".join(list("-D" + d for d in global_defines))
 
-        # only for dynamic
-        lib_short_str = " ".join(list(self.get_libraries_short_required()))
-        lib_long_str  = " ".join(list(self.get_libraries_long_required()))
-        lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
-        lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
+        mkdir(os.path.dirname(self.get_makefile_filename_out()))
 
-        makefile = self.get_makefile_filename_out()
-        
-        #print "defines " + define_str
-        
-        with open(os.path.join(compiler_dir, self.get_makefile_template())) as f:
-            temp = jinja2.Template(f.read())
-        
-        out = temp.render(
-                inc_str=inc_str,
-                define_str = define_str,
-                inc_dir = self.inc_dir,
-                src_dir = self.src_dir,
-                binary_file = self.get_binary_file(),
-                build_dir=self.build_dir,
-                master_config_dir = Config.master_config_dir,
-                compiler_dir = compiler_dir,
-                lib_long_str = lib_long_str,
-                lib_link_str = lib_link_str,
-                lib_dir_str  = lib_dir_str,
-                project_name = self.name,
-                makefile = makefile
-                )
-    
-        mkdir(self.build_dir)
-        
-        
-        makefiles.append(makefile)
-    
-        with open(makefile,'w') as f:
-            f.write(out)
+        self.render2(
+                os.path.join(compiler_dir, self.get_makefile_template()),
+                self.get_makefile_filename_out())
+
+
 

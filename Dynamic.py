@@ -3,7 +3,10 @@ from Library import *
 class Dynamic(Library):
     def __init__(self, name):
         super(Dynamic, self).__init__(name)
-    
+ 
+    def get_build_dir(self):
+        return os.path.join(self.root,"build","dynamic")
+   
     def get_binary_file(self):
         return os.path.join(self.build_dir, "lib" + self.name + ".so")
 
