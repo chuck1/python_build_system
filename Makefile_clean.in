@@ -14,8 +14,6 @@ objects_dir = $(build_dir)/objects
 process_dir = $(build_dir)/process
 
 include $(compiler_dir)/color.mk
-
-
 include $(compiler_dir)/clean.mk
 include $(compiler_dir)/help.mk
 

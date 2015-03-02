@@ -2,7 +2,7 @@
 depend: $(dep_files)
 
 dependclean:
-	@rm -rf $(build_dir)/depends/*
+	rm -rf $(depends_dir)
 
 $(dep_files): $(depends_dir)/%.cpp.d: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build deps $@$(COLOR_RESET)\""

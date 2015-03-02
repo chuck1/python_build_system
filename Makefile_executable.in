@@ -28,9 +28,9 @@ src_in = $(shell find $(src_dir) -name '*.cpp.in')
 #obj_processed = $(patsubst $(src_dir)/%.cpp.in, $(build_dir)/objects/%.cpp.o, $(src_in))
 #obj           = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/objects/%.cpp.o, $(src))
 
-CFLAGS = -g -std=c++0x -Wno-format-security
+CFLAGS = -g -std=c++0x -Wno-format-security -rdynamic
 
-CARGS = $(define_str) $(CFLAGS) $(inc) -lpthread
+CARGS = $(define_str) $(CFLAGS) $(inc)
 
 .PHONY: all
 
@@ -48,7 +48,7 @@ $(binary): $(lib_long_str)
 
 $(binary): $(obj)
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
-	@g++ $< -o $@ $(lib_dir_str) $(lib_link_str) $(lib_link_str) $(lib_link_str) -lpthread
+	@g++ $(CARGS) $< -o $@ $(lib_dir_str) $(lib_link_str) $(lib_link_str) $(lib_link_str) -lpthread
 
 clean:
 	@rm -rf $(process_dir)/*

@@ -134,10 +134,18 @@ config_files.append(main_config)
 #print config_files
 
 
-make_lines   = "\n".join(list("\t@$(MAKE) -f " + m + " --no-print-directory" for m in makefiles))
-clean_lines  = "\n".join(list("\t@$(MAKE) -f " + m + " clean --no-print-directory" for m in makefiles))
-depend_lines = "\n".join(list("\t@$(MAKE) -f " + m + " depend --no-print-directory" for m in makefiles))
+make_lines         = "\n".join(list("\t@$(MAKE) -f " + m + " --no-print-directory" for m in makefiles))
+clean_lines        = "\n".join(list("\t@$(MAKE) -f " + m + " clean --no-print-directory" for m in makefiles))
+depend_lines       = "\n".join(list("\t@$(MAKE) -f " + m + " depend --no-print-directory" for m in makefiles))
 depend_clean_lines = "\n".join(list("\t@$(MAKE) -f " + m + " dependclean --no-print-directory" for m in makefiles))
+
+
+targets = ""
+#print "projects"
+for p in projects:
+    #print p.name
+    targets += p.name + ":\n"
+    targets += "\t@$(MAKE) -f " + p.get_makefile_filename_out() + " --no-print-directory\n\n"
 
 config_file_str = " ".join(config_files)
 makefiles_str = " ".join(makefiles)

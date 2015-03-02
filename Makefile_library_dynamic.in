@@ -8,7 +8,9 @@ binary            = {{ binary_file }}
 compiler_dir      = {{ compiler_dir }}
 master_config_dir = {{ master_config_dir }}
 lib_long_str      = {{ lib_long_str }}
-lib_link_str      = {{ lib_link_str }}
+lib_link_str_whole = {{ lib_link_str_whole }}
+lib_link_str_no_whole = {{ lib_link_str_no_whole }}
+
 lib_dir_str       = {{ lib_dir_str }}
 makefile          = {{ makefile }}
 project_name      = {{ project_name }}
@@ -38,15 +40,14 @@ include $(compiler_dir)/cpp_library.mk
 
 
 
-
-
-link_arg = -Wl,-whole-archive $(lib_link_str) -Wl,-no-whole-archive
+link1 = -Wl,-whole-archive $(lib_link_str_whole) -Wl,-no-whole-archive
+link2 = $(lib_link_str_no_whole)
 
 $(binary): $(lib_long_str)
 
 $(binary): $(obj)
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
-	@$(CC) -shared $(lib_dir_str) $(link_arg) -Wl,-soname,$@.1 -o $@.1.0 $^
+	@$(CC) -shared $(lib_dir_str) $(link1) -Wl,-soname,$@.1 -o $@.1.0 $^ $(link2)
 	@ln -sf $@.1.0 $@.1
 	@ln -sf $@.1.0 $@
 
