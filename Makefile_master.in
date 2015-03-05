@@ -14,7 +14,14 @@ dependclean:
 depend:
 {{ depend_lines }}
 
+{{ phony_lines }}
+
 {{targets }}
+
+
+{{ all2 }}
+
+
 
 Makefile: $(config_file_str) $(compiler_file)
 	@pmake ..

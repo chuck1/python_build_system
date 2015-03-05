@@ -58,6 +58,7 @@ class Base(object):
     #def require_library(self, l):
     #    self.inc_dirs.append(l.inc_dir)
     
+    
     def get_libraries_required(self, whole = False):
         libs = []
         for r in self.reqs:

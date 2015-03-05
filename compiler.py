@@ -140,12 +140,24 @@ depend_lines       = "\n".join(list("\t@$(MAKE) -f " + m + " depend --no-print-d
 depend_clean_lines = "\n".join(list("\t@$(MAKE) -f " + m + " dependclean --no-print-directory" for m in makefiles))
 
 
+phonies = []
+
 targets = ""
 #print "projects"
 for p in projects:
     #print p.name
-    targets += p.name + ":\n"
+    targets += p.name + ": " + " ".join(r.l.name for r in p.reqs) + "\n"
+    
+    for r in p.reqs:
+        if not r.l.name in phonies:
+            phonies.append(r.l.name)
+    
     targets += "\t@$(MAKE) -f " + p.get_makefile_filename_out() + " --no-print-directory\n\n"
+
+
+phony_lines = "\n".join(".PHONY: " + ph for ph in phonies)
+
+all2 = "all2: " + " ".join(p.name for p in projects)
 
 config_file_str = " ".join(config_files)
 makefiles_str = " ".join(makefiles)
@@ -166,7 +178,10 @@ else:
             clean_lines = clean_lines,
             depend_lines = depend_lines,
             depend_clean_lines = depend_clean_lines,
-            config_file_str = config_file_str
+            config_file_str = config_file_str,
+            targets            = targets,
+            all2               = all2,
+            phony_lines        = phony_lines,
             )
     
     with open("Makefile",'w') as f:
