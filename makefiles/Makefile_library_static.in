@@ -15,14 +15,13 @@ depends_dir = $(build_dir)/depends
 objects_dir = $(build_dir)/objects
 process_dir = $(build_dir)/process
 
-include $(compiler_dir)/color.mk
+include $(compiler_dir)/makefiles/color.mk
 
 CC = g++
 
 CFLAGS = -g -std=c++0x -Wno-format-security -fPIC -Wall -Werror -Wno-unused-local-typedefs -Wno-unknown-pragmas
 
 CARGS = $(CFLAGS) $(inc) $(define_str)
-
 
 .PHONY: all
 
@@ -32,9 +31,9 @@ all: $(binary)
 MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(depends_dir)/$*.cpp.d -MT $(objects_dir)/$*.cpp.o
 
 
-include $(compiler_dir)/cpp_library.mk
+include $(compiler_dir)/makefiles/cpp_library.mk
 
-
+precompiler: $(pre)
 
 
 
@@ -46,9 +45,9 @@ $(binary): $(obj)
 	@ar rcs $@ $(filter %.cpp.o, $^)
 
 
-include $(compiler_dir)/clean.mk
-include $(compiler_dir)/help.mk
-include $(compiler_dir)/depend.mk
+include $(compiler_dir)/makefiles/clean.mk
+include $(compiler_dir)/makefiles/help.mk
+include $(compiler_dir)/makefiles/depend.mk
 
 
 

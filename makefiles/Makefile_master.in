@@ -2,8 +2,12 @@ makefiles_str       = {{ makefiles_str }}
 compiler_file   = {{ compiler_file }}
 config_file_str = {{ config_file_str }}
 
-all: Makefile {{ makefiles_str }}
+all2: Makefile {{ makefiles_str }}
+
+all3: Makefile {{ makefiles_str }}
 {{ make_lines }}
+
+{{ all2 }}
 
 clean:
 {{ clean_lines }}
@@ -19,7 +23,7 @@ depend:
 {{targets }}
 
 
-{{ all2 }}
+
 
 
 

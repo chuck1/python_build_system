@@ -20,10 +20,10 @@ depends_dir = $(build_dir)/depends
 objects_dir = $(build_dir)/objects
 process_dir = $(build_dir)/process
 
-include $(compiler_dir)/color.mk
+include $(compiler_dir)/makefiles/color.mk
 
-CC = g++ -fPIC
-CFLAGS = -g -std=c++0x -Wno-format-security -Wall -Werror -Wno-unknown-pragmas -Wno-unused-local-typedefs
+CC = g++
+CFLAGS = -fPIC -g -std=c++0x -Wno-format-security -Wall -Werror -Wno-unknown-pragmas -Wno-unused-local-typedefs
 
 CARGS = $(inc) $(define_str) $(CFLAGS)
 
@@ -36,7 +36,7 @@ all: $(binary)
 
 $(obj): $(makefile) $(lib_long_str)
 
-include $(compiler_dir)/cpp_library.mk
+include $(compiler_dir)/makefiles/cpp_library.mk
 
 
 
@@ -52,9 +52,9 @@ $(binary): $(obj)
 	@ln -sf $@.1.0 $@
 
 
-include $(compiler_dir)/clean.mk
-include $(compiler_dir)/help.mk
-include $(compiler_dir)/depend.mk
+include $(compiler_dir)/makefiles/clean.mk
+include $(compiler_dir)/makefiles/help.mk
+include $(compiler_dir)/makefiles/depend.mk
 
 
 

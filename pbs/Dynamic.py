@@ -11,10 +11,10 @@ class Dynamic(Library):
         return os.path.join(self.get_build_dir(), "lib" + self.name + ".so")
 
     def get_makefile_template(self):
-        return "Makefile_library_dynamic.in"
+        return "makefiles/Makefile_library_dynamic.in"
 
     def get_makefile_filename_out(self):
-        return os.path.join(self.get_build_dir(), "Makefile_dynamic.mk")
+        return os.path.join(self.get_build_dir(), "Makefile")
 
     def get_lib_dir_arg(self):
         return "-Wl,-rpath," + self.get_build_dir()

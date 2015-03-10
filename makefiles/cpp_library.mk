@@ -2,12 +2,13 @@
 src       = $(shell find $(src_dir) -name '*.cpp')
 inc_files = $(shell find $(inc_dir) -name '*.hpp')
 
+pre           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre, $(src))
 obj           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.o,   $(src))
 dep_files     = $(patsubst $(src_dir)/%.cpp,    $(depends_dir)/%.cpp.d,   $(src))
 
 #pch_files     = $(patsubst $(inc_dir)/%.hpp,    $(inc_dir)/%.hpp.gch,             $(inc_files))
 
-GCH = g++ -c -x c++-header
+GCH = $(CC) -c -x c++-header
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
@@ -16,6 +17,10 @@ $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@$(MAKEDEPEND)
 	@$(CC) -c $(CARGS) -o $@ $<
 
+$(pre): $(build_dir)/objects/%.cpp.pre: $(src_dir)/%.cpp
+	@bash -c "echo -e \"$(COLOR_YELLOW)precompiler $@$(COLOR_RESET)\""
+	@mkdir -p $(dir $@)
+	@$(CC) -E $(CARGS) -o $@ $<
 
 $(pch_files): $(inc_dir)/%.hpp.gch: $(inc_dir)/%.hpp
 	@bash -c "echo -e \"$(COLOR_BLUE)pch $@$(COLOR_RESET)\""
