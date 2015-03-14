@@ -10,6 +10,8 @@ dep_files     = $(patsubst $(src_dir)/%.cpp,    $(depends_dir)/%.cpp.d,   $(src)
 
 GCH = $(CC) -c -x c++-header
 
+precompiler: $(pre)
+
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)

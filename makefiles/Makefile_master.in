@@ -1,6 +1,9 @@
-makefiles_str       = {{ makefiles_str }}
+makefiles_str   = {{ makefiles_str }}
 compiler_file   = {{ compiler_file }}
 config_file_str = {{ config_file_str }}
+
+CC = g++
+export CC
 
 all2: Makefile {{ makefiles_str }}
 
@@ -22,10 +25,8 @@ depend:
 
 {{targets }}
 
-
-
-
-
+header_dep:
+{{ precompiler_lines }}
 
 Makefile: $(config_file_str) $(compiler_file)
 	@pmake ..

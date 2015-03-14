@@ -74,7 +74,10 @@ make_lines         = "\n".join(list("\t@$(MAKE) -f " + m + " --no-print-director
 clean_lines        = "\n".join(list("\t@$(MAKE) -f " + m + " clean --no-print-directory" for m in makefiles))
 depend_lines       = "\n".join(list("\t@$(MAKE) -f " + m + " depend --no-print-directory" for m in makefiles))
 depend_clean_lines = "\n".join(list("\t@$(MAKE) -f " + m + " dependclean --no-print-directory" for m in makefiles))
+precompiler_lines  = "\n".join(list("\t@$(MAKE) -f " + m + " precompiler --no-print-directory" for m in makefiles))
 
+for p in projects:
+    pass
 
 phonies = []
 
@@ -106,22 +109,25 @@ if args.p:
     l = libraries[args.p[0]]
 
     l.preprocess(args.p[1], args.p[2])
-    
+
 else:
-    with open(os.path.join(compiler_dir, "makefiles", "Makefile_master.in"),'r') as f:
+    f_in = os.path.join(compiler_dir, "makefiles", "Makefile_master.in")
+
+    with open(f_in, 'r') as f:
         temp = jinja2.Template(f.read())
     
     out = temp.render(
-            makefiles_str = makefiles_str,
-            compiler_file = compiler_file,
-            make_lines = make_lines,
-            clean_lines = clean_lines,
-            depend_lines = depend_lines,
-            depend_clean_lines = depend_clean_lines,
-            config_file_str = config_file_str,
-            targets            = targets,
-            all2               = all2,
-            phony_lines        = phony_lines,
+            makefiles_str       = makefiles_str,
+            compiler_file       = compiler_file,
+            make_lines          = make_lines,
+            clean_lines         = clean_lines,
+            depend_lines        = depend_lines,
+            depend_clean_lines  = depend_clean_lines,
+            config_file_str     = config_file_str,
+            targets             = targets,
+            all2                = all2,
+            phony_lines         = phony_lines,
+            precompiler_lines   = precompiler_lines
             )
     
     with open("Makefile",'w') as f:

@@ -22,7 +22,8 @@ process_dir = $(build_dir)/process
 
 include $(compiler_dir)/makefiles/color.mk
 
-CC = g++
+#CC = g++
+
 CFLAGS = -fPIC -g -std=c++0x -Wno-format-security -Wall -Werror -Wno-unknown-pragmas -Wno-unused-local-typedefs
 
 CARGS = $(inc) $(define_str) $(CFLAGS)

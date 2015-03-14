@@ -17,7 +17,7 @@ process_dir = $(build_dir)/process
 
 include $(compiler_dir)/makefiles/color.mk
 
-CC = g++
+#CC = g++
 
 CFLAGS = -g -std=c++0x -Wno-format-security -fPIC -Wall -Werror -Wno-unused-local-typedefs -Wno-unknown-pragmas
 
@@ -27,6 +27,7 @@ CARGS = $(CFLAGS) $(inc) $(define_str)
 
 all: $(binary)
 	@bash -c "echo -e \"$(COLOR_BLUE)$(build_dir)$(COLOR_RESET)\""
+	@echo CC=$(CC)
 
 MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(depends_dir)/$*.cpp.d -MT $(objects_dir)/$*.cpp.o
 
