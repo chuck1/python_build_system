@@ -85,20 +85,37 @@ targets = ""
 #print "projects"
 for p in projects:
     #print p.name
-    targets += p.name + ": " + " ".join(r.l.name for r in p.reqs) + "\n"
+
+    reqs = " ".join(r.l.name for r in p.reqs)
+    reqs_pre = " ".join(r.l.name+"_PRE" for r in p.reqs)
+
+    if isinstance(p,Executable):
+        targets += p.name + "_PRE: " + reqs_pre + "\n"
+    else:
+        targets += p.name + "_PRE: " + reqs + " " + reqs_pre + "\n"
     
     for r in p.reqs:
         if not r.l.name in phonies:
             phonies.append(r.l.name)
     
-    targets += "\t@$(MAKE) -f " + p.get_makefile_filename_out() + " --no-print-directory\n\n"
+    targets += "\t@$(MAKE) -f " + p.get_makefile_filename_out() + " --no-print-directory\n"
+
+
+    targets += "\n"
+
+for p in projects:
+    #print p.name
+    targets += p.name + ": " + p.name + "_PRE " + " ".join(t for t in p.tests) + "\n"
+    for test in p.tests:
+        targets += "\t./"+test+"\n"
+    targets += "\n"
 
 for p in projects:
     if not p.name in phonies:
         phonies.append(p.name)
 
 
-phony_lines = "\n".join(".PHONY: " + ph for ph in phonies)
+phony_lines = "\n".join(list(".PHONY: " + ph for ph in phonies) + list(".PHONY: " + ph + "_PRE" for ph in phonies))
 
 all2 = "all2: " + " ".join(p.name for p in projects)
 
