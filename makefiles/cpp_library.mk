@@ -3,6 +3,7 @@ src       = $(shell find $(src_dir) -name '*.cpp')
 inc_files = $(shell find $(inc_dir) -name '*.hpp')
 
 pre           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre, $(src))
+pre2          = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre2, $(src))
 obj           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.o,   $(src))
 dep_files     = $(patsubst $(src_dir)/%.cpp,    $(depends_dir)/%.cpp.d,   $(src))
 
@@ -10,7 +11,7 @@ dep_files     = $(patsubst $(src_dir)/%.cpp,    $(depends_dir)/%.cpp.d,   $(src)
 
 GCH = $(CC) -c -x c++-header
 
-precompiler: $(pre)
+precompiler: $(pre2)
 
 $(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
@@ -23,6 +24,11 @@ $(pre): $(build_dir)/objects/%.cpp.pre: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_YELLOW)precompiler $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
 	@$(CC) -E $(CARGS) -o $@ $<
+
+$(pre2): $(build_dir)/objects/%.cpp.pre2: $(build_dir)/objects/%.cpp.pre
+	@bash -c "echo -e \"$(COLOR_YELLOW)precompiler2  $@$(COLOR_RESET)\""
+	@mkdir -p $(dir $@)
+	@python /home/chuck/git/chuck1/python/projects/c_projects/gcc_header_dep/pre_to_pre2.py $<
 
 $(pch_files): $(inc_dir)/%.hpp.gch: $(inc_dir)/%.hpp
 	@bash -c "echo -e \"$(COLOR_BLUE)pch $@$(COLOR_RESET)\""

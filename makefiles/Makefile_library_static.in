@@ -17,9 +17,9 @@ process_dir = $(build_dir)/process
 
 include $(compiler_dir)/makefiles/color.mk
 
-#CC = g++
-
-CFLAGS = -g -std=c++0x -Wno-format-security -fPIC -Wall -Werror -Wno-unused-local-typedefs -Wno-unknown-pragmas
+CFLAGS  = -g -std=c++0x -rdynamic -fPIC
+CFLAGS += -Wno-format-security -Wall -Werror
+CFLAGS += -Wno-unused-local-typedefs -Wno-unknown-pragmas
 
 CARGS = $(CFLAGS) $(inc) $(define_str)
 
@@ -35,8 +35,6 @@ MAKEDEPEND = $(CC) -c $(CARGS) -MM $< -MF $(depends_dir)/$*.cpp.d -MT $(objects_
 include $(compiler_dir)/makefiles/cpp_library.mk
 
 precompiler: $(pre)
-
-
 
 $(binary): $(makefile)
 
