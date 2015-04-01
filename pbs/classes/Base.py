@@ -1,20 +1,10 @@
 import jinja2
+import os
+
 import myos
 
-from func import *
+import pbs.func
 
-class Config(object):
-    master_config_dir = None
-
-compiler_dir = "/home/chuck/git/chuck1/python_build_system"
-compiler_file = os.path.join(compiler_dir, "compiler.py")
-
-projects = []
-makefiles = []
-config_files = []
-
-libraries = {}
-global_defines = []
 
 class Req(object):
     def __init__(self, l, whole):
@@ -22,7 +12,9 @@ class Req(object):
         self.whole = whole
 
 class Base(object):
-    def __init__(self):
+    def __init__(self, proj):
+        self.proj = proj
+
         self.reqs = []
     
         # specific for this project
@@ -32,7 +24,7 @@ class Base(object):
 
         self.tests = []
 
-        self.root = get_caller_dir(4)
+        self.root = pbs.func.get_caller_dir(4)
    
     def require(self, o, lib_type = 'static', whole = False):
         if isinstance(o, list):

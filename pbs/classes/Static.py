@@ -1,8 +1,8 @@
 from Library import *
 
 class Static(Library):
-    def __init__(self, name):
-        super(Static, self).__init__(name)
+    def __init__(self, name, proj):
+        super(Static, self).__init__(name, proj)
     
     def get_build_dir(self):
         return os.path.join(self.root,"build","static")
@@ -19,7 +19,7 @@ class Static(Library):
     def get_lib_dir_arg(self):
         return "-L" + self.get_build_dir()
 
-    def register(self):
-        libraries[self.name + 'static'] = self
+    def register(self, proj):
+        proj.libraries[self.name + 'static'] = self
 
 

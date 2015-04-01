@@ -1,19 +1,19 @@
 import jinja2
 import myos
+import os
 
-from func import *
+import pbs.func
+import pbs.classes.Base
 
-from Base import *
-
-class Library(Base):
-    def __init__(self, name):
-        super(Library, self).__init__()
-
+class Library(pbs.classes.Base.Base):
+    def __init__(self, name, proj):
+        super(Library, self).__init__(proj)
+        
         self.name = name
 
-        self.register()
+        self.register(proj)
 
-        self.config_file = get_caller()
+        self.config_file = pbs.func.get_caller()
 
         #print name
         #print self.config_file
@@ -24,7 +24,8 @@ class Library(Base):
         #self.build_dir = os.path.join(self.root,"build")
             
         self.inc_dirs.append(self.inc_dir)
-        self.inc_dirs.append(os.path.join(self.get_build_dir(), "process", "inc"))
+        self.inc_dirs.append(
+                os.path.join(self.get_build_dir(), "process", "inc"))
 
         # append long library name to libs
         # using long name allows build dependency
@@ -59,18 +60,27 @@ class Library(Base):
 
     def render2(self, fn_in, fn_out):
         #print "library"
+
+        inc0 = self.get_include_dirs_required() + self.inc_dirs
+
+        l0 = list("-I" + s for s in inc0)
         
-        inc_str = " ".join(list("-I" + s for s in (self.get_include_dirs_required() + self.inc_dirs)))
+        inc_str = " ".join(l0)
     
-        define_str = " ".join(list("-D" + d for d in global_defines))
+        define_str = " ".join(list("-D" + d for d in self.proj.defines))
 
         # only for dynamic
-        lib_short_str = " ".join(list(self.get_libraries_short_required()))
-        lib_long_str  = " ".join(list(self.get_libraries_long_required()))
-        lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
+        lib_short_str = " ".join(
+                list(self.get_libraries_short_required()))
+        lib_long_str  = " ".join(
+                list(self.get_libraries_long_required()))
+        lib_link_str  = " ".join(
+                list("-l" + s for s in self.get_libraries_required()))
 
-        lib_link_str_whole  = " ".join(list("-l" + s for s in self.get_libraries_required(True)))
-        lib_link_str_no_whole  = " ".join(list("-l" + s for s in self.get_libraries_required(False)))
+        lib_link_str_whole  = " ".join(
+                list("-l" + s for s in self.get_libraries_required(True)))
+        lib_link_str_no_whole  = " ".join(
+                list("-l" + s for s in self.get_libraries_required(False)))
 
         lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
 
@@ -86,8 +96,8 @@ class Library(Base):
                 src_dir           = self.src_dir,
                 binary_file       = self.get_binary_file(),
                 build_dir         = self.get_build_dir(),
-                master_config_dir = Config.master_config_dir,
-                compiler_dir      = compiler_dir,
+                master_config_dir = self.proj.config_dir,
+                compiler_dir      = self.proj.compiler_dir,
                 lib_long_str      = lib_long_str,
                 lib_link_str_whole      = lib_link_str_whole,
                 lib_link_str_no_whole   = lib_link_str_no_whole,
@@ -104,15 +114,17 @@ class Library(Base):
     def make(self):
         #print "library"
 
-        mkdir(os.path.dirname(self.get_makefile_filename_out()))
+        pbs.func.mkdir(os.path.dirname(self.get_makefile_filename_out()))
 
-        projects.append(self)
+        self.proj.projects.append(self)
 
-        makefiles.append(self.get_makefile_filename_out())
+        self.proj.makefiles.append(self.get_makefile_filename_out())
 
-        self.render2(
-                os.path.join(compiler_dir, self.get_makefile_template()),
-                self.get_makefile_filename_out())
+        f_in = os.path.join(
+                self.proj.compiler_dir,
+                self.get_makefile_template())
+
+        self.render2(f_in, self.get_makefile_filename_out())
 
 
 
