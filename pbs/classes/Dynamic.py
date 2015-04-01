@@ -1,8 +1,8 @@
 from Library import *
 
 class Dynamic(Library):
-    def __init__(self, name):
-        super(Dynamic, self).__init__(name)
+    def __init__(self, name, proj):
+        super(Dynamic, self).__init__(name, proj)
  
     def get_build_dir(self):
         return os.path.join(self.root,"build","dynamic")
@@ -20,6 +20,6 @@ class Dynamic(Library):
         return "-Wl,-rpath," + self.get_build_dir()
 
     def register(self):
-        libraries[self.name + 'dynamic'] = self
+        self.proj.libraries[self.name + 'dynamic'] = self
     
 

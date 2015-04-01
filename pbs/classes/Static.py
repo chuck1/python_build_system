@@ -19,7 +19,8 @@ class Static(Library):
     def get_lib_dir_arg(self):
         return "-L" + self.get_build_dir()
 
-    def register(self, proj):
-        proj.libraries[self.name + 'static'] = self
+    def register(self):
+        print self.proj
+        self.proj.libraries[self.name + 'static'] = self
 
 

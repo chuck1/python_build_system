@@ -1,19 +1,19 @@
 
 help:
-	@echo
+	@echo project_name:
 	@echo $(project_name)
-	@echo
+	@echo src:
 	@echo $(src)
-	@echo
+	@echo obj:
 	@echo $(obj)
-	@echo
+	@echo inc_in:
 	@echo $(inc_in)
-	@echo
+	@echo inc_process:
 	@echo $(inc_process)
-	@echo
+	@echo pch_in_files:
 	@echo $(pch_in_files)
-	@echo pch_files
+	@echo pch_files:
 	@echo $(pch_files)
-	@echo
+	@echo src_in:
 	@echo $(src_in)
 

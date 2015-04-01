@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#pbs.tools.header_dep.fune!/usr/bin/env python
 
 import pickle
 import re
@@ -12,7 +12,6 @@ import networkx as nx
 import logging
 
 pat = '# \d+ "([-\.\w\/]+\.(cpp|c|h|hpp))"( \d)?( \d)?( \d)?'
-
 
 class Project(object):
     def __init__(self, root, name):
@@ -268,27 +267,6 @@ def pre_to_pre2(filename):
         #f.write("".join(lines2))
         pickle.dump(p, f)
 
-def pre2_to_pre3(pre_file, proj):
-
-    filename = pre_file[:-5]
-        
-    i = proj.index_of(filename)
-        
-    with open(pre_file, 'r') as f:
-	#lines = f.readlines()
-        p = pickle.load(f)
-	
-    pat = '# \d+ "([-\w\/]+\.(cpp|c|h|hpp))"( \d)?( \d)?( \d)?'
-        
-    #for line in lines:
-    for item in p.items:
-            fileto = item.name
-            flags = item.flags
-			
-            if not issys(fileto):
-                pass
-                
-	    process(fileto, flags, proj)
 
 def print_degree(g, l = False, ff = None, out = sys.stdout):
     c = 0
@@ -362,6 +340,28 @@ def combine_projects(project_files, proj):
                 proj.dep.append(d1)
 
 
+
+def pre2_to_pre3(pre_file, proj):
+
+    filename = pre_file[:-5]
+
+    i = proj.index_of(filename)
+
+    with open(pre_file, 'r') as f:
+        #lines = f.readlines()
+        p = pickle.load(f)
+
+    pat = '# \d+ "([-\w\/]+\.(cpp|c|h|hpp))"( \d)?( \d)?( \d)?'
+
+    #for line in lines:
+    for item in p.items:
+        fileto = item.name
+        flags = item.flags
+
+        if not issys(fileto):
+            pass
+
+        process(fileto, flags, proj)
 
 
 

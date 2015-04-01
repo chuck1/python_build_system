@@ -7,11 +7,9 @@ import pbs.classes.Base
 
 class Library(pbs.classes.Base.Base):
     def __init__(self, name, proj):
-        super(Library, self).__init__(proj)
+        super(Library, self).__init__(name, proj)
         
-        self.name = name
-
-        self.register(proj)
+        self.register()
 
         self.config_file = pbs.func.get_caller()
 
@@ -25,7 +23,7 @@ class Library(pbs.classes.Base.Base):
             
         self.inc_dirs.append(self.inc_dir)
         self.inc_dirs.append(
-                os.path.join(self.get_build_dir(), "process", "inc"))
+                os.path.join(self.get_build_dir(), "process", "include"))
 
         # append long library name to libs
         # using long name allows build dependency
@@ -38,6 +36,8 @@ class Library(pbs.classes.Base.Base):
 
     def preprocess(self, filename_in, filename_out):
         print "preprocess",filename_in,filename_out
+
+        raise 0
 
         with open(filename_in, 'r') as f:
             temp = jinja2.Template(f.read())
@@ -52,7 +52,7 @@ class Library(pbs.classes.Base.Base):
         out = temp.render(
                 build_dir         = self.get_build_dir(),
                 src_dir           = self.src_dir,
-                master_config_dir = Config.master_config_dir,
+                master_config_dir = self.proj.config_dir,
                 name              = self.name,
                 )
 

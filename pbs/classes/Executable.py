@@ -1,20 +1,21 @@
+import os
+import jinja2
 
-from pbs.Library import *
+import pbs.classes.Base
+import pbs.func
 
-class Executable(Base):
-    def __init__(self, name):
-        super(Executable, self).__init__()
+class Executable(pbs.classes.Base.Base):
+    def __init__(self, name, proj):
+        super(Executable, self).__init__(name, proj)
 
-        print "executable " + name
+        #print "executable " + name
 
-        self.name = name
-        
-        self.config_file = get_caller()
+        self.config_file = pbs.func.get_caller()
 
         #print name
         #print self.config_file
         
-        self.root = get_caller_dir()
+        self.root = pbs.func.get_caller_dir()
         
         self.inc_dir = os.path.join(self.root,"include")
         self.src_dir = os.path.join(self.root,"src")
@@ -34,20 +35,18 @@ class Executable(Base):
     def make(self):
         #print "library"
 
-        projects.append(self)
+        self.proj.projects.append(self)
 
         inc_str       = " ".join(list("-I" + s for s in self.get_include_dirs_required()))
         lib_short_str = " ".join(list(self.get_libraries_short_required()))
         lib_long_str  = " ".join(list(self.get_libraries_long_required()))
         lib_link_str  = " ".join(list("-l" + s for s in self.get_libraries_required()))
-
         lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
-
-        define_str = " ".join(list("-D" + d for d in global_defines))
+        define_str    = " ".join(list("-D" + d for d in self.proj.defines))
        
         print "defines " + define_str
         
-        with open(os.path.join(compiler_dir, "makefiles", "Makefile_executable.in")) as f:
+        with open(os.path.join(self.proj.compiler_dir, "makefiles", "Makefile_executable.in")) as f:
             temp = jinja2.Template(f.read())
         
         out = temp.render(
@@ -60,12 +59,12 @@ class Executable(Base):
                 lib_long_str = lib_long_str,
                 lib_link_str = lib_link_str,
                 lib_dir_str = lib_dir_str,
-                compiler_dir = compiler_dir
+                compiler_dir = self.proj.compiler_dir
                 )
 
-        mkdir(self.build_dir)
+        pbs.func.mkdir(self.build_dir)
         makefile = os.path.join(self.build_dir, "Makefile")
-        makefiles.append(makefile)
+        self.proj.makefiles.append(makefile)
         with open(makefile,'w') as f:
             f.write(out)
 

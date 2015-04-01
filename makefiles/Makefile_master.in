@@ -1,19 +1,24 @@
-makefiles_str   = {{ makefiles_str }}
-compiler_file   = {{ compiler_file }}
-config_file_str = {{ config_file_str }}
+include files/vars.make
+
 
 CC = g++
 export CC
 
-all2: Makefile {{ makefiles_str }}
+.PHONY: all2
 
-all3: Makefile {{ makefiles_str }}
+all2: Makefile $(make_files) $(projects)
+
+all3: Makefile $(make_files)
 {{ make_lines }}
 
-{{ all2 }}
+help:
+{{ help_lines }}
 
 clean:
 {{ clean_lines }}
+
+clean_pre:
+{{ clean_pre_lines }}
 
 dependclean:
 {{ depend_clean_lines }}
@@ -29,6 +34,6 @@ header_dep:
 {{ precompiler_lines }}
 
 Makefile: $(config_file_str) $(compiler_file)
-	@pmake ..
+	@pymake gen ..
 
 

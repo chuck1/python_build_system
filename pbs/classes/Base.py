@@ -12,7 +12,8 @@ class Req(object):
         self.whole = whole
 
 class Base(object):
-    def __init__(self, proj):
+    def __init__(self, name, proj):
+        self.name = name
         self.proj = proj
 
         self.reqs = []
@@ -38,11 +39,11 @@ class Base(object):
         # look for .pmake_config file in ~/usr/lib/pmake
         filename = os.path.join("/home/chuck/usr/lib/pmake", name + ".py")
         try:
-            l = libraries[name + lib_type]
+            l = self.proj.libraries[name + lib_type]
         except:
             #print libraries
-            execfile(filename)
-            l = libraries[name + lib_type]
+            execfile(filename, {'self':self.proj})
+            l = self.proj.libraries[name + lib_type]
         
         self.reqs.append(Req(l, whole)) 
 
