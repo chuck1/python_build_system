@@ -37,8 +37,6 @@ class Library(pbs.classes.Base.Base):
     def preprocess(self, filename_in, filename_out):
         print "preprocess",filename_in,filename_out
 
-        raise 0
-
         with open(filename_in, 'r') as f:
             temp = jinja2.Template(f.read())
         
