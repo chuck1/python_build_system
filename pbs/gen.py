@@ -7,6 +7,7 @@ import inspect
 import myos
 
 import pbs.classes.Static
+import pbs.settings
 
 #from pbs.Library import *
 #from pbs.Static import *
@@ -22,7 +23,7 @@ class Project(object):
         self.config_dir = config_dir
         self.args = args
     
-        self.compiler_dir = "/home/chuck/git/python_build_system"
+        self.compiler_dir = pbs.settings.PBS_DIR
         self.compiler_file = os.path.join(self.compiler_dir, "pbs/gen.py")
 
         self.projects = []

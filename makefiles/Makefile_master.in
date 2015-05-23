@@ -34,6 +34,6 @@ header_dep:
 {{ precompiler_lines }}
 
 Makefile: $(config_file_str) $(compiler_file)
-	@pymake gen ..
+	@pbs gen ..
 
 

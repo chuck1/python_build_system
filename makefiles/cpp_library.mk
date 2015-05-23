@@ -29,12 +29,12 @@ $(pre): $(build_dir)/objects/%.cpp.pre: $(src_dir)/%.cpp
 $(pre2): $(build_dir)/objects/%.cpp.pre2: $(build_dir)/objects/%.cpp.pre
 	@bash -c "echo -e \"$(COLOR_YELLOW)precompiler2  $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	@pymake pre2 $<
+	@pbs pre2 $<
 
 $(pre3): $(build_dir)/objects/%.cpp.pre2.pre_proj: $(build_dir)/objects/%.cpp.pre2
 	@bash -c "echo -e \"$(COLOR_YELLOW)precompiler3  $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	@pymake pre3 $<
+	@pbs pre3 $<
 
 $(pch_files): $(inc_dir)/%.hpp.gch: $(inc_dir)/%.hpp
 	@bash -c "echo -e \"$(COLOR_BLUE)pch $@$(COLOR_RESET)\""
@@ -58,12 +58,12 @@ pch_in_files  = $(patsubst $(inc_dir)/%.hpp.in, $(process_dir)/include/%.hpp.gch
 $(inc_process): $(process_dir)/include/%.hpp: $(inc_dir)/%.hpp.in
 	@bash -c "echo -e \"$(COLOR_BLUE)preproc $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	pymake gen $(master_config_dir) -p $(project_name)$(library_type) $< $@
+	pbs gen $(master_config_dir) -p $(project_name)$(library_type) $< $@
 
 $(src_process): $(process_dir)/src/%.cpp: $(src_dir)/%.cpp.in
 	@bash -c "echo -e \"$(COLOR_BLUE)preproc $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
-	pymake gen $(master_config_dir)
+	pbs gen $(master_config_dir)
 
 #$(obj): $(inc_process) $(pch_in_files)
 $(obj): $(inc_process)
