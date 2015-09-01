@@ -27,3 +27,19 @@ def mkdir(d):
     except:
         pass
 
+def read_config_file():
+    with open('config.txt', 'r') as f:
+        text = f.read()
+    
+    lines = text.split('\n')
+    lines = [l for l in lines if l]
+    
+    d = {}
+
+    for l in lines:
+        s = l.split(',')
+
+        d[s[0]] = s[1]
+
+    return d
+

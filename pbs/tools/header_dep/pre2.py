@@ -2,8 +2,10 @@
 
 import argparse
 
-from func import *
+import func
 
 def pre2_func(args):
-    pre_to_pre2(args.filename)
+    func.pre_to_pre2(args.filename_in, args.filename_out)
+
+
 

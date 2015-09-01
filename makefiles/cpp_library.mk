@@ -1,21 +1,24 @@
 
+gch_dir = $(build_dir)/gch
+
 src       = $(shell find $(src_dir) -name '*.cpp')
 inc_files = $(shell find $(inc_dir) -name '*.hpp')
 
-pre           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre, $(src))
-pre2          = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre2, $(src))
-pre3          = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre2.pre_proj, $(src))
-obj           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.o,   $(src))
-dep_files     = $(patsubst $(src_dir)/%.cpp,    $(depends_dir)/%.cpp.d,   $(src))
-
-#pch_files     = $(patsubst $(inc_dir)/%.hpp,    $(inc_dir)/%.hpp.gch,             $(inc_files))
+pre           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre,	$(src))
+pre2          = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre2,	$(src))
+pre3          = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.pre3,      $(src))
+obj           = $(patsubst $(src_dir)/%.cpp,    $(objects_dir)/%.cpp.o,		$(src))
+dep_files     = $(patsubst $(src_dir)/%.cpp,    $(depends_dir)/%.cpp.d,		$(src))
+#gch_files     = $(patsubst $(inc_dir)/%.hpp,    $(gch_dir)/%.hpp.gch,		$(inc_files))
 
 GCH = $(CC) -c -x c++-header
 
 precompiler: $(pre2) $(pre3)
 
-$(obj): $(build_dir)/objects/%.cpp.o: $(src_dir)/%.cpp
-	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
+$(obj): $(objects_dir)/%.cpp.o: $(src_dir)/%.cpp
+	@bash -c "echo -e \"$(COLOR_BLUE)build $(patsubst $(build_dir)/%,%,$@)$(COLOR_RESET)\""
+	@#bash -c "echo -e \"$(COLOR_BLUE)build $(build_dir)$(COLOR_RESET)\""
+	@#bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
 	@mkdir -p $(dir $(depends_dir)/$*.cpp.d)
 	@$(MAKEDEPEND)
@@ -31,16 +34,15 @@ $(pre2): $(build_dir)/objects/%.cpp.pre2: $(build_dir)/objects/%.cpp.pre
 	@mkdir -p $(dir $@)
 	@pbs pre2 $<
 
-$(pre3): $(build_dir)/objects/%.cpp.pre2.pre_proj: $(build_dir)/objects/%.cpp.pre2
+$(pre3): $(objects_dir)/%.cpp.pre3: $(objects_dir)/%.cpp.pre2
 	@bash -c "echo -e \"$(COLOR_YELLOW)precompiler3  $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
 	@pbs pre3 $<
 
-$(pch_files): $(inc_dir)/%.hpp.gch: $(inc_dir)/%.hpp
+$(gch_files): $(gch_dir)/%.hpp.gch: $(inc_dir)/%.hpp
 	@bash -c "echo -e \"$(COLOR_BLUE)pch $@$(COLOR_RESET)\""
 	@mkdir -p $(dir $@)
 	@$(GCH) $(CARGS) -o $@ $<
-
 
 #$(obj): $(pch_files)
 

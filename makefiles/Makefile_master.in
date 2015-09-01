@@ -30,8 +30,14 @@ depend:
 
 {{targets }}
 
+doc:
+{{ doc_lines }}
+
 header_dep:
 {{ precompiler_lines }}
+
+doc_all:
+	@doxygen Doxyfile
 
 Makefile: $(config_file_str) $(compiler_file)
 	@pbs gen ..

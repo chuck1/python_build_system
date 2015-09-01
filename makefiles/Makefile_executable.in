@@ -1,9 +1,10 @@
+root_dir     = {{ root_dir }}
 src_dir      = {{ src_dir }}
 inc_dir      = {{ inc_dir }}
 build_dir    = {{ build_dir }}
-inc          = {{ inc_str }} 
+inc          = {{ inc_str }} -I$(inc_dir)
 define_str   = {{ define_str }}
-binary       = {{ binary_file }}
+binary       = {{ binary_path }}
 lib_long_str = {{ lib_long_str }}
 lib_link_str = {{ lib_link_str }}
 lib_dir_str  = {{ lib_dir_str }}
@@ -16,9 +17,8 @@ process_dir = $(build_dir)/process
 include $(compiler_dir)/makefiles/color.mk
 
 
-
-src    = $(shell find $(src_dir) -name '*.cpp')
-src_in = $(shell find $(src_dir) -name '*.cpp.in')
+#src    = $(shell find $(src_dir) -name '*.cpp')
+#src_in = $(shell find $(src_dir) -name '*.cpp.in')
 
 #inc_in = $(shell find $(inc_dir) -name '*.hpp.in')
 
@@ -48,11 +48,12 @@ $(binary): $(lib_long_str)
 
 $(binary): $(obj)
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
-	@$(CC) $(CARGS) $< -o $@ $(lib_dir_str) $(lib_link_str) $(lib_link_str) $(lib_link_str) -lpthread
+	@$(CC) $(CARGS) $^ -o $@ $(lib_dir_str) $(lib_link_str) $(lib_link_str) $(lib_link_str) -lpthread
 
 
 include $(compiler_dir)/makefiles/clean.mk
 include $(compiler_dir)/makefiles/help.mk
 include $(compiler_dir)/makefiles/depend.mk
+include $(compiler_dir)/makefiles/doc.mk
 
 

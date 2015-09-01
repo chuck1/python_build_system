@@ -8,7 +8,8 @@ class Dynamic(Library):
         return os.path.join(self.root,"build","dynamic")
    
     def get_binary_file(self):
-        return os.path.join(self.get_build_dir(), "lib" + self.name + ".so")
+        #return os.path.join(self.get_build_dir(), "lib" + self.name + ".so")
+        return "lib" + self.name + ".so"
 
     def get_makefile_template(self):
         return "makefiles/Makefile_library_dynamic.in"

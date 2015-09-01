@@ -1,5 +1,8 @@
+import shutil
 import jinja2
 import os
+import re
+import logging
 
 import myos
 
@@ -7,11 +10,18 @@ import pbs.func
 
 
 class Req(object):
+    """
+    l     - Library object
+    whole - boolean something to do with copying symbols when linking
+    """
     def __init__(self, l, whole):
         self.l = l
         self.whole = whole
 
 class Base(object):
+    """
+    reqs - list of Req objects
+    """
     def __init__(self, name, proj):
         self.name = name
         self.proj = proj
@@ -26,7 +36,86 @@ class Base(object):
         self.tests = []
 
         self.root = pbs.func.get_caller_dir(4)
-   
+
+    def get_objects_dir(self):
+        return os.path.join(
+			self.get_build_dir(),
+			'objects'
+			)
+
+    def get_c_files(self):
+        patstr = ".*\.cpp$"
+        #print "glob {} {}".format(repr(patstr), repr(self.root))
+        return myos.glob(patstr, self.root)
+    def get_h_files(self):
+        patstr = ".*\.hpp$"
+        #print "glob {} {}".format(repr(patstr), repr(self.root))
+        return myos.glob(patstr, os.path.join(self.root, 'include'))
+
+    def get_o_files(self):
+	logging.debug("get_o_files")
+	pat  = self.root + r'/(.*)\.cpp$'
+        repl = self.get_objects_dir() + r'/\1.o'
+
+        for c in self.get_c_files():
+	    s = re.sub(pat, repl, c)
+	    logging.debug("  pat  = {}".format(repr(pat)))
+	    logging.debug("  repl = {}".format(repr(repl)))
+	    logging.debug("  c    = {}".format(repr(c)))
+	    logging.debug("  s    = {}".format(repr(s)))
+            yield s
+ 
+    def get_gch_files(self):
+	pat  = self.root + r'/(.*)\.hpp$'
+        repl = self.get_build_dir() + r'/gch/\1.hpp.gch'
+        
+        for c in self.get_h_files():
+	    s = re.sub(pat, repl, c)
+            yield s
+    def get_dep_for(self, c):
+       	pat  = self.root + r'/(.*)\.cpp$'
+        repl = self.get_build_dir() + r'/depends/\1.txt'
+        s = re.sub(pat, repl, c)
+        return s
+ 
+    def get_dep_files(self):
+        for c in self.get_c_files():
+            yield self.get_dep_for(c)
+    def get_pre_files(self):
+	pat  = self.root + r'/(.*)\.cpp$'
+        repl = self.get_objects_dir() + r'/\1.pre'
+        
+        for c in self.get_c_files():
+	    s = re.sub(pat, repl, c)
+            yield s
+
+    def get_pre2_files(self):
+	pat  = self.root + r'/(.*)\.cpp$'
+        repl = self.get_objects_dir() + r'/\1.pre2'
+        
+        for c in self.get_c_files():
+	    s = re.sub(pat, repl, c)
+            yield s
+    
+    def get_pre3_files(self):
+	pat  = self.root + r'/(.*)\.cpp$'
+        repl = self.get_objects_dir() + r'/\1.pre3'
+        
+        for c in self.get_c_files():
+	    s = re.sub(pat, repl, c)
+            yield s
+
+    def clean(self):
+        print "rm "+self.get_build_dir()
+        print "rm "+self.get_binary_file()
+
+	shutil.rmtree(self.get_build_dir())
+	
+        try:
+            os.remove(self.get_binary_file())
+        except OSError:
+            pass
+
     def require(self, o, lib_type = 'static', whole = False):
         if isinstance(o, list):
             for l in o:
@@ -35,13 +124,11 @@ class Base(object):
             self.require1(o, lib_type, whole)
 
     def require1(self, name, lib_type, whole):
-        print "require " + name
         # look for .pmake_config file in ~/usr/lib/pmake
-        filename = os.path.join("/home/chuck/usr/lib/pmake", name + ".py")
+        filename = os.path.join("/home/chuck/home/usr/lib/pmake", name + ".py")
         try:
             l = self.proj.libraries[name + lib_type]
         except:
-            #print libraries
             execfile(filename, {'self':self.proj})
             l = self.proj.libraries[name + lib_type]
         
@@ -88,5 +175,275 @@ class Base(object):
         for r in self.reqs:
             inc_dirs += r.l.inc_dirs
         return inc_dirs
+    def get_gch_inc_dirs_required(self):
+        inc_dirs = []
+        for r in self.reqs:
+            inc_dirs += [r.l.gch_inc_dir]
+        return inc_dirs
 
+    def get_inc_list(self):
+	#print "get_inc_list"
+        for s in (self.get_include_dirs_required() + self.inc_dirs):
+	    #print "  "+s
+            yield "-I" + s
+
+    def get_gch_inc_list(self):
+       	#print "get_gch_inc_list"
+        for s in (self.get_gch_inc_dirs_required() + [self.gch_inc_dir]):
+	    #print "  "+s
+            yield "-I" + s
+
+    def get_define_list(self):
+        for d in self.proj.defines:
+            yield "-D" + d 
+
+    def render2(self, fn_in, fn_out):
+
+        #inc0 = self.get_include_dirs_required() + self.inc_dirs
+        #l0 = list("-I" + s for s in inc0)
+        
+        inc_str = " ".join(self.get_inc_list())
+    
+        define_str = " ".join(self.get_define_list())
+
+        # only for dynamic
+        lib_short_str = " ".join(
+                list(self.get_libraries_short_required()))
+        lib_long_str  = " ".join(
+                list(self.get_libraries_long_required()))
+        lib_link_str  = " ".join(
+                list("-l" + s for s in self.get_libraries_required()))
+
+        lib_link_str_whole  = " ".join(
+                list("-l" + s for s in self.get_libraries_required(True)))
+        lib_link_str_no_whole  = " ".join(
+                list("-l" + s for s in self.get_libraries_required(False)))
+
+        lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
+
+	tag_files = " ".join(list("{}/tagfile".format(r.l.get_build_dir()) for r in self.reqs))
+
+        
+        with open(fn_in, 'r') as f:
+            temp = jinja2.Template(f.read())
+        
+        out = temp.render(
+                inc_str           = inc_str,
+                define_str        = define_str,
+                root_dir          = self.root,
+                inc_dir           = self.inc_dir,
+                src_dir           = self.src_dir,
+                binary_file       = self.get_binary_file(),
+                build_dir         = self.get_build_dir(),
+                master_config_dir = self.proj.root_dir,
+                compiler_dir      = self.proj.compiler_dir,
+                lib_long_str      = lib_long_str,
+                lib_link_str_whole      = lib_link_str_whole,
+                lib_link_str_no_whole   = lib_link_str_no_whole,
+                lib_link_str      = lib_link_str,
+                lib_dir_str       = lib_dir_str,
+                project_name      = self.name,
+                makefile		= self.get_makefile_filename_out(),
+		tag_files		= tag_files,
+                )
+    
+        with open(fn_out,'w') as f:
+            f.write(out)
+
+    def get_cargs(self):
+	cargs = [
+	        '-g', '-std=c++0x', '-rdynamic', '-fPIC',
+	        '-Wno-format-security',
+	        '-Wall',
+	        '-Werror',
+	        '-Wno-unused-local-typedefs',
+	        '-Wno-unknown-pragmas']
+	
+	cargs += list(self.get_define_list())
+
+	return cargs
+
+    def include_block(self, h):
+	print "include_block"
+	print h
+        h = os.path.relpath(h, os.path.join(self.root,'include'))
+	print h
+
+	h = h.replace('.','_')
+	h = h.upper()
+	print h
+	return h
+	
+    def get_make_targets_0(self):
+        
+	cargs = self.get_cargs()
+        
+	inc = list(self.get_inc_list())
+	gch_inc = list(self.get_gch_inc_list())
+
+	include = ['-include', 'A.hpp']
+
+	def do_o_dep(proj, target, deps):
+            df = self.get_dep_for(deps[0])
+	    #print deps[0]
+	    #print df
+            with open(df,'r') as f:
+	        dep = f.read().split("\n")
+
+	    #print "dep"
+	    for l in dep:
+                #print "  ",l
+		yield l
+
+        def do_o(proj, target, deps):
+
+            pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
+
+	    #cmd = ['g++', '-c', '-H', deps[0], '-o', target] + cargs + gch_inc + include
+            #pbs.tools.make.call(cmd)
+
+	    print "deps"
+	    for d in deps:
+	        d = os.path.relpath(d, proj.root_dir)
+	        print "  "+d
+	    
+            pbs.tools.make.call(['g++', '-c', deps[0], '-o', target] + cargs + gch_inc + include)
+
+	def do_pre(proj, target, deps):
+            pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
+            pbs.tools.make.call(['g++', '-E', '-H', deps[0], '-o', target] + cargs + inc)
+            pbs.tools.make.call(['g++', '-E', deps[0], '-o', target] + cargs + inc)
+
+	def do_pre2(proj, target, deps):
+            pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
+	    pbs.tools.header_dep.func.pre_to_pre2(deps[0], target)
+	
+	def do_pre3(proj, target, deps):
+            pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
+	    pbs.tools.header_dep.func.pre2_to_pre3(deps[0], target)
+
+	def do_gch(proj, target, deps):
+	    h = self.include_block(deps[0])
+
+            pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
+
+	    cmd = ['g++', deps[0], '-o', target] + cargs
+	    #cmd = ['g++', deps[0], '-o', target] + cargs
+	    #cmd = ['g++', '-x', 'c++-header', deps[0], '-o', target] + cargs
+            pbs.tools.make.call(cmd)
+
+            head,_ = os.path.splitext(target)
+
+            with open(head,'w') as f:
+		f.write("#ifndef "+h+"\n")
+		f.write("#define "+h+"\n")
+	        f.write("#error gch file missing\n")
+		f.write("#endif\n")
+
+	# create text file with a list of header files
+	def do_dep(proj, target, deps):
+	    pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
+
+	    cmd = ['g++', '-E', '-H', deps[0], '-o', '/dev/null'] + cargs + inc
+            o,e = pbs.tools.make.call(cmd)
+	    
+	    def fil(s):
+                m = re.match("\.*[ ](\/.*)", s)
+                if m:
+		    return m.group(1)
+		return None
+
+	    e = e.split('\n')
+
+            print "unfiltered"
+	    for l in e:
+    	        print "  "+repr(l)
+
+            e = list(fil(l) for l in e)
+	    e = list(l for l in e if l)
+
+            print "filtered"
+	    for l in e:
+    	        print "  "+repr(l)
+
+	    with open(target, 'w') as f:
+                f.write("\n".join(e))
+
+
+	h_files = list(self.get_h_files())
+	for f in h_files:
+	    #print "  "+f
+	    pass
+	gch_files = list(self.get_gch_files())
+	for f in gch_files:
+	    #print "  "+f
+	    pass
+
+        # make rules for general cpp project
+	for c in self.get_c_files():
+		o = re.sub(
+			self.root + r'/(.*)\.cpp$',
+			self.get_build_dir() + r'/objects/\1.o',
+			c)
+
+
+		yield pbs.tools.make.Target(o, [c] + [self.get_dep_for(c)] + gch_files,
+				do_o,
+				do_o_dep)
+	
+	for c in self.get_h_files():
+		o = re.sub(
+			self.root + r'/(.*)\.hpp$',
+			self.get_build_dir() + r'/gch/\1.hpp.gch',
+			c)
+				
+		yield pbs.tools.make.Target(o, [c], do_gch)
+
+	for c in self.get_c_files():
+		o = re.sub(
+			self.root + r'/(.*)\.cpp$',
+			self.get_build_dir() + r'/objects/\1.pre',
+			c)
+				
+		yield pbs.tools.make.Target(o, [c] + gch_files, do_pre)
+
+	for c in self.get_c_files():
+		o = re.sub(
+			self.root + r'/(.*)\.cpp$',
+			self.get_build_dir() + r'/depends/\1.txt',
+			c)
+		
+		yield pbs.tools.make.Target(o, [c], do_dep)
+
+	for c in self.get_pre_files():
+		o = re.sub(
+			self.get_objects_dir() + r'/(.*)\.pre$',
+			self.get_objects_dir() + r'/\1.pre2',
+			c)
+				
+		yield pbs.tools.make.Target(o, [c], do_pre2)
+
+	for c in self.get_pre2_files():
+		o = re.sub(
+			self.get_objects_dir() + r'/(.*)\.pre2$',
+			self.get_objects_dir() + r'/\1.pre3',
+			c)
+				
+		yield pbs.tools.make.Target(o, [c], do_pre3)
+
+	yield pbs.tools.make.Target(
+	    "precompile_{}".format(self.name),
+	    list(self.get_pre3_files()) + list(self.get_dep_files()),
+	    None)
+
+    def generate_doxyfile(self):
+
+        self.render2(
+            os.path.join(
+                    self.proj.compiler_dir,
+                    "Doxyfile"),
+            os.path.join(
+                    self.get_build_dir(),
+                    "Doxyfile")
+            )
 

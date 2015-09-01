@@ -1,4 +1,5 @@
 
+root_dir          = {{ root_dir }}
 src_dir           = {{ src_dir }}
 inc_dir           = {{ inc_dir }}
 build_dir         = {{ build_dir }}
@@ -54,6 +55,7 @@ $(binary): $(obj)
 include $(compiler_dir)/makefiles/clean.mk
 include $(compiler_dir)/makefiles/help.mk
 include $(compiler_dir)/makefiles/depend.mk
+include $(compiler_dir)/makefiles/doc.mk
 
 
 

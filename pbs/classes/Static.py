@@ -10,6 +10,12 @@ class Static(Library):
     def get_binary_file(self):
         return os.path.join(self.get_build_dir(), "lib" + self.name + ".a")
 
+    def get_binary_path(self):
+        return os.path.join(
+                self.proj.get_build_dir(),
+                self.get_binary_file()
+                )
+
     def get_makefile_template(self):
         return "makefiles/Makefile_library_static.in"
 
@@ -20,7 +26,26 @@ class Static(Library):
         return "-L" + self.get_build_dir()
 
     def register(self):
-        print self.proj
         self.proj.libraries[self.name + 'static'] = self
 
+    def get_make_targets(self):
+        
+        cargs = self.get_cargs()
+
+        def do_binary(proj, target, deps):
+            pbs.tools.make.call(['ar', 'rcs', target] + deps)
+
+        reqs = list(r.l.name for r in self.reqs)
+
+        yield pbs.tools.make.Target(
+            self.name,
+            [self.get_binary_path(), "precompile_{}".format(self.name)] + reqs,
+            None
+            )
+        
+        yield pbs.tools.make.Target(
+            self.get_binary_path(),
+            list(self.get_o_files()),
+            do_binary
+            )
 

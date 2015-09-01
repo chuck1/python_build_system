@@ -1,4 +1,5 @@
 
+root_dir   = {{ root_dir }}
 src_dir    = {{ src_dir }}
 inc_dir    = {{ inc_dir }}
 build_dir  = {{ build_dir }}
@@ -18,7 +19,8 @@ process_dir = $(build_dir)/process
 include $(compiler_dir)/makefiles/color.mk
 
 CFLAGS  = -g -std=c++0x -rdynamic -fPIC
-CFLAGS += -Wno-format-security -Wall -Werror
+CFLAGS += -Wno-format-security
+CFLAGS += -Wall -Werror
 CFLAGS += -Wno-unused-local-typedefs -Wno-unknown-pragmas
 
 CARGS = $(CFLAGS) $(inc) $(define_str)
@@ -47,6 +49,7 @@ $(binary): $(obj)
 include $(compiler_dir)/makefiles/clean.mk
 include $(compiler_dir)/makefiles/help.mk
 include $(compiler_dir)/makefiles/depend.mk
+include $(compiler_dir)/makefiles/doc.mk
 
 
 

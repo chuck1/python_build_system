@@ -1,3 +1,3 @@
 
-PBS_DIR = "/home/chuck/git/pbs"
+PBS_DIR = "/home/chuck/home/git/pbs"
 
