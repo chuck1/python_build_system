@@ -3,6 +3,7 @@ import jinja2
 import os
 import re
 import logging
+import itertools
 
 import myos
 
@@ -64,14 +65,15 @@ class Base(object):
 	    logging.debug("  c    = {}".format(repr(c)))
 	    logging.debug("  s    = {}".format(repr(s)))
             yield s
- 
-    def get_gch_files(self):
+
+    def get_gch_for(self, f):
 	pat  = self.root + r'/(.*)\.hpp$'
         repl = self.get_build_dir() + r'/gch/\1.hpp.gch'
-        
-        for c in self.get_h_files():
-	    s = re.sub(pat, repl, c)
-            yield s
+	s = re.sub(pat, repl, f)
+        return s
+    def get_gch_files(self):
+        return [self.get_gch_for(c) for c in self.get_h_files()]
+
     def get_dep_for(self, c):
        	pat  = self.root + r'/(.*)\.cpp$'
         repl = self.get_build_dir() + r'/depends/\1.txt'
@@ -264,14 +266,21 @@ class Base(object):
 	return cargs
 
     def include_block(self, h):
-	print "include_block"
-	print h
+        """
+	generate c preprocessor include block from filename
+        """
+	logging.debug("include_block")
+	logging.debug("  "+h)
+
         h = os.path.relpath(h, os.path.join(self.root,'include'))
-	print h
+	
+	logging.debug("  "+h)
 
 	h = h.replace('.','_')
 	h = h.upper()
-	print h
+
+	logging.debug("  "+h)
+	
 	return h
 	
     def get_make_targets_0(self):
@@ -281,7 +290,22 @@ class Base(object):
 	inc = list(self.get_inc_list())
 	gch_inc = list(self.get_gch_inc_list())
 
-	include = ['-include', 'A.hpp']
+	#include = ['-include', 'A.hpp']
+        def filter_local_gch_2(proj, deps):
+	    for d in deps:
+		r = proj.root_dir
+	        d = os.path.realpath(d)
+		c = os.path.commonprefix([d, r])
+		if c == r:
+		    h,t = os.path.splitext(d)
+		    if t == '.gch':
+		        yield d
+		    if t == '.h':
+			yield get_gch_for_any(proj, d)
+		    if t == '.hpp':
+			yield get_gch_for_any(proj, d)
+		else:
+		    yield d
 
 	def do_o_dep(proj, target, deps):
             df = self.get_dep_for(deps[0])
@@ -290,24 +314,77 @@ class Base(object):
             with open(df,'r') as f:
 	        dep = f.read().split("\n")
 
+	    dep = list(filter_local_gch_2(proj, dep))
+
 	    #print "dep"
 	    for l in dep:
                 #print "  ",l
 		yield l
 
+	def get_gch_for_any(proj, f):
+	    """
+	    convert any local header to correct gch
+	    """
+	    #print "get gch for any"
+            rel = os.path.relpath(f, proj.root_dir)
+	    #print "rel = "+rel
+
+            h = rel
+            while h:
+	        h,t = os.path.split(h)
+	        if t == 'include':
+		   break
+
+	    #print "h = "+h
+	    p = proj.projects[h]
+            #print p
+	    g = p.get_gch_for(f)
+            #print "g = "+g
+	    return g
+
+	def filter_local_gch(proj, deps):
+	    logging.debug("filter_local_gch")
+	    for d in deps:
+		r = proj.root_dir
+	        d = os.path.realpath(d)
+		c = os.path.commonprefix([d, r])
+		logging.debug("  d "+d)
+		logging.debug("  r "+r)
+		logging.debug("  c "+c)
+		if c == r:
+		    h,t = os.path.splitext(d)
+		    if t == '.gch':
+		        yield h
+		    if t == '.h':
+			yield d
+		    if t == '.hpp':
+			yield d
+
+
         def do_o(proj, target, deps):
+            logging.debug("do_o")
 
             pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
 
 	    #cmd = ['g++', '-c', '-H', deps[0], '-o', target] + cargs + gch_inc + include
             #pbs.tools.make.call(cmd)
 
-	    print "deps"
+	    logging.debug("deps")
 	    for d in deps:
 	        d = os.path.relpath(d, proj.root_dir)
-	        print "  "+d
+	        logging.debug("  "+d)
 	    
-            pbs.tools.make.call(['g++', '-c', deps[0], '-o', target] + cargs + gch_inc + include)
+            # list of -include options for all gch headers
+
+	    gch_files = list(filter_local_gch(proj, deps))
+
+	    include = list(itertools.chain.from_iterable(("-include",f) for f in gch_files))
+
+	    logging.debug("include\n"+"\n".join("  "+repr(l) for l in include))
+	    
+            cmd = ['g++', '-c', deps[0], '-o', target] + cargs + gch_inc + inc + include
+
+            pbs.tools.make.call(cmd)
 
 	def do_pre(proj, target, deps):
             pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
@@ -342,6 +419,9 @@ class Base(object):
 
 	# create text file with a list of header files
 	def do_dep(proj, target, deps):
+            """
+	    convert regular local header files into gch files
+	    """
 	    pbs.tools.make.call(['mkdir','-p', os.path.dirname(target)])
 
 	    cmd = ['g++', '-E', '-H', deps[0], '-o', '/dev/null'] + cargs + inc
@@ -355,16 +435,14 @@ class Base(object):
 
 	    e = e.split('\n')
 
-            print "unfiltered"
-	    for l in e:
-    	        print "  "+repr(l)
+            logging.debug("unfiltered\n"+"\n".join("  {}".format(l) for l in e))
 
             e = list(fil(l) for l in e)
 	    e = list(l for l in e if l)
 
-            print "filtered"
-	    for l in e:
-    	        print "  "+repr(l)
+	    e = list(filter_local_gch_2(proj, e))
+
+            logging.debug("filtered\n"+"\n".join("  {}".format(l) for l in e))
 
 	    with open(target, 'w') as f:
                 f.write("\n".join(e))
@@ -386,8 +464,9 @@ class Base(object):
 			self.get_build_dir() + r'/objects/\1.o',
 			c)
 
-
-		yield pbs.tools.make.Target(o, [c] + [self.get_dep_for(c)] + gch_files,
+		yield pbs.tools.make.Target(
+				o,
+				[c] + [self.get_dep_for(c)],
 				do_o,
 				do_o_dep)
 	

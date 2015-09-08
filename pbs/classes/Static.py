@@ -39,7 +39,7 @@ class Static(Library):
 
         yield pbs.tools.make.Target(
             self.name,
-            [self.get_binary_path(), "precompile_{}".format(self.name)] + reqs,
+            [self.get_binary_path()],#, "precompile_{}".format(self.name)] + reqs,
             None
             )
         

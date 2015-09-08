@@ -36,21 +36,23 @@ class Target(object):
         blue(target)
         #print "exec",target
         if self._func is not None:
-            dep = list(self.dependencies(target)) + list(self.dependencies1(target))
+            dep = list(self.dependencies(target)) + list(self.dependencies1(proj, target))
             self._func(proj, target, dep)
 
 
 class Makefile(object):
-    def __init__(self, proj):
+    def __init__(self, proj, flag_print):
         self.proj=proj
         self.targets = []
         self.target_time = {}
+        self.flag_print = flag_print
 
     def get_target(self, target):
         for t in self.targets:
             if t.target == target:
                 return t
         return None
+
 
     def make(self, target):
 
@@ -59,6 +61,7 @@ class Makefile(object):
         if r is None:
             # if no target exists, file must exist
             if os.path.exists(target):
+                #print "no target for {}".format(repr(target))
                 return os.path.getmtime(target)
             else:
                 print "no file or rule to make file: "+target
@@ -77,11 +80,17 @@ class Makefile(object):
         dep += dep1
         t += t1
 
+        if self.flag_print:
+            print "make {}".format(repr(target))
+            print "  deps:"
+            for d in dep:
+                print "    {}".format(repr(d))
+
+
         logging.debug("make {}".format(repr(target)))
         logging.debug("  deps:")
         for d,time in zip(dep,t):
             logging.debug("    {:16} {}".format(time, repr(d)))
-
         #print "   dep time:",t
 
         if os.path.exists(target):
@@ -110,10 +119,13 @@ def patsubst(pat, repl, lst):
         yield re.sub(pat, repl, l)
 
 def call(cmd):
-    print "cmd: " + " ".join(cmd)
+    logging.debug("cmd: " + " ".join(cmd))
+
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     o,e = p.communicate()
     if p.returncode != 0:
+        print o
+        print e
         sys.exit(p.returncode)
 
     return o,e

@@ -47,7 +47,7 @@ class Executable(pbs.classes.Base.Base):
 
         yield pbs.tools.make.Target(
             self.name,
-            [self.get_binary_path(), "precompile_{}".format(self.name)],
+            [self.get_binary_path()],#, "precompile_{}".format(self.name)],
             None
             )
         

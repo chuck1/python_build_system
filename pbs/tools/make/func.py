@@ -10,7 +10,6 @@ import pbs.func
 import pbs.tools.make
 
 
-
 def func(args):
     #print "make function"
     d = pbs.func.read_config_file()
@@ -24,7 +23,7 @@ def func(args):
     if args.v:
         logging.basicConfig(level=logging.DEBUG)
 
-    m = pbs.tools.make.Makefile(project)
+    m = pbs.tools.make.Makefile(project, True)
 
     for n,p in project.projects.items():
         #print "project", n
@@ -43,6 +42,7 @@ def func(args):
         list(p.name for p in project.projects.values()),
         None))
 
+    #m.print_dep('all')
     m.make('all')
 
     #m.print_info()
