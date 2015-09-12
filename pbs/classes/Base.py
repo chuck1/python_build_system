@@ -25,6 +25,10 @@ class Base(object):
     """
     def __init__(self, name, proj):
         self.name = name
+	if not isinstance(name, str):
+		print "name",name
+		raise ValueError()
+
         self.proj = proj
 
         self.reqs = []
