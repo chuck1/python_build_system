@@ -94,6 +94,8 @@ class Library(pbs.classes.Base.Base):
 
         typedef_verb = "typedef gal::verb::Verbosity<{}> VERB;".format(full_name)
 
+        c['type_this'] = full_name
+
         c['typedef_verb'] = typedef_verb
         
         c['setup_verb'] = "\n".join([

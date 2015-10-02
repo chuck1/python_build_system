@@ -17,4 +17,29 @@ def gen_func(args):
 
     project.do()
 
+    for name,p in project.projects.items():
+        #print name
+        #print p.inc_dir
+        #print p.root
+        in_files = list(p.get_h_in_files())
+        for f in in_files:
+            r = os.path.relpath(f, p.inc_dir)
+            r2,_ = os.path.splitext(r)
+            #print "  "+r
+            #print "  "+r2
+            src = f
+            dst = os.path.join(p.root,'build','link',r2)
+            #print "  {} --> {}".format(dst,src)
+            
+            fldr,_ = os.path.split(dst)
+
+            try:
+                os.makedirs(fldr)
+            except:
+                pass
+
+            try:
+                os.symlink(src, dst)
+            except:
+                pass
 

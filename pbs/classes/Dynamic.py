@@ -22,5 +22,6 @@ class Dynamic(Library):
 
     def register(self):
         self.proj.libraries[self.name + 'dynamic'] = self
+
     
 

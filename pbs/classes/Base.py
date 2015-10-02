@@ -52,6 +52,10 @@ class Base(object):
         patstr = ".*\.cpp$"
         #print "glob {} {}".format(repr(patstr), repr(self.root))
         return myos.glob(patstr, self.root)
+    def get_h_in_files(self):
+        patstr = ".*\.hpp\.in$"
+        #print "glob {} {}".format(repr(patstr), repr(self.root))
+        return myos.glob(patstr, os.path.join(self.root, 'include'))
     def get_h_files(self):
         patstr = ".*\.hpp$"
         #print "glob {} {}".format(repr(patstr), repr(self.root))
@@ -131,7 +135,7 @@ class Base(object):
 
     def require1(self, name, lib_type, whole):
         # look for .pmake_config file in ~/usr/lib/pmake
-        filename = os.path.join("/home/chuck/home/usr/lib/pmake", name + ".py")
+        filename = os.path.join(os.environ['HOME']+"/usr/lib/pmake", name + ".py")
         try:
             l = self.proj.libraries[name + lib_type]
         except:
@@ -228,7 +232,6 @@ class Base(object):
         lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
 
 	tag_files = " ".join(list("{}/tagfile".format(r.l.get_build_dir()) for r in self.reqs))
-
         
         with open(fn_in, 'r') as f:
             temp = jinja2.Template(f.read())

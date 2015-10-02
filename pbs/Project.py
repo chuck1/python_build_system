@@ -34,6 +34,27 @@ class Project(object):
         
         self.build_dir = os.getcwd()
 
+    def get_source_files(self):
+        """
+        return list of all source files for all projects
+        """
+        files = []
+        for n,p in self.projects.items():
+            files += p.get_c_files()
+            files += p.get_c_in_files()
+
+        return files
+    def get_header_files(self):
+        """
+        return list of all header files for all projects
+        """
+        files = []
+        for n,p in self.projects.items():
+            files += p.get_h_files()
+            files += p.get_h_in_files()
+
+        return files
+
     def get_build_dir(self):
         return self.build_dir
 
