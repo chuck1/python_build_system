@@ -47,6 +47,8 @@ class Base(object):
 			self.get_build_dir(),
 			'objects'
 			)
+    def make_binary_links(self, d):
+        pass
 
     def get_c_files(self):
         patstr = ".*\.cpp$"

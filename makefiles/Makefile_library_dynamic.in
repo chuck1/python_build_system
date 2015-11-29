@@ -1,15 +1,15 @@
 
-root_dir          = {{ root_dir }}
-src_dir           = {{ src_dir }}
-inc_dir           = {{ inc_dir }}
-build_dir         = {{ build_dir }}
-inc               = {{ inc_str }} 
-define_str        = {{ define_str }}
-binary            = {{ binary_file }}
-compiler_dir      = {{ compiler_dir }}
-master_config_dir = {{ master_config_dir }}
-lib_long_str      = {{ lib_long_str }}
-lib_link_str_whole = {{ lib_link_str_whole }}
+root_dir              = {{ root_dir }}
+src_dir               = {{ src_dir }}
+inc_dir               = {{ inc_dir }}
+build_dir             = {{ build_dir }}
+inc                   = {{ inc_str }} 
+define_str            = {{ define_str }}
+binary                = {{ binary_file }}
+compiler_dir          = {{ compiler_dir }}
+master_config_dir     = {{ master_config_dir }}
+lib_long_str          = {{ lib_long_str }}
+lib_link_str_whole    = {{ lib_link_str_whole }}
 lib_link_str_no_whole = {{ lib_link_str_no_whole }}
 
 lib_dir_str       = {{ lib_dir_str }}

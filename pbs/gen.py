@@ -17,6 +17,11 @@ def gen_func(args):
 
     project.do()
 
+def func_bundle(args):
+    d = pbs.func.read_config_file()
+    
+    project = pbs.Project.Project(d['root'], args)
+
     for name,p in project.projects.items():
         #print name
         #print p.inc_dir
@@ -42,4 +47,6 @@ def gen_func(args):
                 os.symlink(src, dst)
             except:
                 pass
+
+    project.bundle()
 

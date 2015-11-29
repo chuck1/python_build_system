@@ -9,8 +9,15 @@ class Dynamic(Library):
    
     def get_binary_file(self):
         #return os.path.join(self.get_build_dir(), "lib" + self.name + ".so")
+        # instead put in project build dir
         return "lib" + self.name + ".so"
 
+    def make_binary_links(self, d):
+        f = self.get_binary_file()
+        dst = os.path.join(d,f)
+        os.symlink(f, dst+'.1')
+        os.symlink(f, dst+'.1.0')
+    
     def get_makefile_template(self):
         return "makefiles/Makefile_library_dynamic.in"
 

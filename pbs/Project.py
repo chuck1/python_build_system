@@ -2,8 +2,9 @@
 
 import jinja2
 import argparse
-import os
+import os, shutil
 import inspect
+import tarfile
 import myos
 
 import pbs.classes.Static
@@ -34,6 +35,11 @@ class Project(object):
         
         self.build_dir = os.getcwd()
 
+    def get_root_dir(self):
+        return self.root_dir
+    def get_build_dir(self):
+        return self.build_dir
+
     def get_source_files(self):
         """
         return list of all source files for all projects
@@ -55,8 +61,6 @@ class Project(object):
 
         return files
 
-    def get_build_dir(self):
-        return self.build_dir
 
     def save_config(self):
         with open('config.txt', 'w') as f:
@@ -227,4 +231,45 @@ class Project(object):
             p.clean()
     def get_build_sequence(self):
         pass
+
+    def bundle(self):
+        
+        try:
+            shutil.rmtree('bundle')
+        except OSError:
+            pass
+
+        os.mkdir('bundle')
+
+        for n,p in self.projects.items():
+            src = p.get_binary_file()
+            h,t = os.path.split(src)
+            dst = os.path.join('bundle', t)
+    
+            print "copy",src," -> ",dst
+
+            shutil.copy(src, dst)
+
+            p.make_binary_links('bundle')
+        
+        # copy script folder
+        src = os.path.join(self.get_root_dir(), 'scripts', 'install')
+        dst = os.path.join(self.get_build_dir(), 'bundle', 'script')
+        shutil.copytree(src, dst)
+
+        # copy share folder
+        src = os.path.join(self.get_root_dir(), 'share')
+        dst = os.path.join(self.get_build_dir(), 'bundle', 'share')
+        shutil.copytree(src, dst)
+        
+
+        # compress
+        print "open"
+        tar = tarfile.open('bundle.tar.gz', 'w:gz')
+        print "add"
+        tar.add("bundle")
+        print "close"
+        tar.close()
+        print "done"
+
 
