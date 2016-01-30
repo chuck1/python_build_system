@@ -5,7 +5,6 @@ import argparse
 import os, shutil
 import inspect
 import tarfile
-import myos
 
 import pbs.classes.Static
 import pbs.settings

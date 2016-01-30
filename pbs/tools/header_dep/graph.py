@@ -2,7 +2,6 @@ import pickle
 import re
 import os
 import glob
-import myos
 import sys
 import subprocess
 import argparse

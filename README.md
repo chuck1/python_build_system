@@ -1,4 +1,4 @@
-# python_build_system
+# python\_build\_system
 python-based c++ project build system to replace cmake
 
 ## Features

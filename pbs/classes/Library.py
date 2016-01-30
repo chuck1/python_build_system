@@ -1,5 +1,4 @@
 import jinja2
-import myos
 import os
 
 import pbs.func

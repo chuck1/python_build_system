@@ -5,9 +5,9 @@ import re
 import logging
 import itertools
 
-import myos
-
+import pbs
 import pbs.func
+
 
 
 class Req(object):
@@ -53,15 +53,15 @@ class Base(object):
     def get_c_files(self):
         patstr = ".*\.cpp$"
         #print "glob {} {}".format(repr(patstr), repr(self.root))
-        return myos.glob(patstr, self.root)
+        return pbs.glob(patstr, self.root)
     def get_h_in_files(self):
         patstr = ".*\.hpp\.in$"
         #print "glob {} {}".format(repr(patstr), repr(self.root))
-        return myos.glob(patstr, os.path.join(self.root, 'include'))
+        return pbs.glob(patstr, os.path.join(self.root, 'include'))
     def get_h_files(self):
         patstr = ".*\.hpp$"
         #print "glob {} {}".format(repr(patstr), repr(self.root))
-        return myos.glob(patstr, os.path.join(self.root, 'include'))
+        return pbs.glob(patstr, os.path.join(self.root, 'include'))
 
     def get_o_files(self):
 	logging.debug("get_o_files")

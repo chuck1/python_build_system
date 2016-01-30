@@ -4,7 +4,7 @@ import jinja2
 import argparse
 import os
 import inspect
-import myos
+#import myos
 
 import pbs.classes.Static
 import pbs.settings
