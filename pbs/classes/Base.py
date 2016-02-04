@@ -158,6 +158,10 @@ class Base(object):
         for r in self.reqs:
             if(r.whole == whole):
                 libs += r.l.libs
+        
+        # manual libs
+        libs += self.libs
+
         return libs
 
     def get_libraries_short_required(self):
