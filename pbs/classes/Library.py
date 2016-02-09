@@ -25,6 +25,7 @@ class Library(pbs.classes.Base.Base):
 
         # append long library name to libs
         # using long name allows build dependency
+        self.libs = []
         self.libs.append(":" + self.get_binary_file())
 
         self.lib_dirs.append(self.get_lib_dir_arg())

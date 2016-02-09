@@ -36,7 +36,7 @@ class Base(object):
         # specific for this project
         self.inc_dirs = []
         self.lib_dirs = []
-        self.libs = []
+        self._libs = []
 
         self.tests = []
 
@@ -160,7 +160,7 @@ class Base(object):
                 libs += r.l.libs
         
         # manual libs
-        libs += self.libs
+        libs += self._libs
 
         return libs
 
