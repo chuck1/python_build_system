@@ -34,8 +34,11 @@ class Base(object):
         self.reqs = []
     
         # specific for this project
+        # include directories
         self.inc_dirs = []
+        # library directories
         self.lib_dirs = []
+        # manual link arguments
         self._libs = []
 
         self.tests = []
