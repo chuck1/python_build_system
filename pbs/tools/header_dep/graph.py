@@ -7,7 +7,7 @@ import subprocess
 import argparse
 import networkx as nx
 import logging
-import graphviz as gv
+#import graphviz as gv
 
 class Node(object):
     def __init__(self, filename, path_clean, filename_pre):
