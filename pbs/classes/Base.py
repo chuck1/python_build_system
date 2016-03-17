@@ -59,11 +59,11 @@ class Base(object):
         return pbs.glob(patstr, self.root)
     def get_h_in_files(self):
         patstr = ".*\.hpp\.in$"
-        #print "glob {} {}".format(repr(patstr), repr(self.root))
+        #rint "glob {} {}".format(repr(patstr), repr(self.root))
         return pbs.glob(patstr, os.path.join(self.root, 'include'))
     def get_h_files(self):
         patstr = ".*\.hpp$"
-        #print "glob {} {}".format(repr(patstr), repr(self.root))
+        #rint "glob {} {}".format(repr(patstr), repr(self.root))
         return pbs.glob(patstr, os.path.join(self.root, 'include'))
 
     def get_o_files(self):
@@ -121,8 +121,8 @@ class Base(object):
             yield s
 
     def clean(self):
-        print "rm "+self.get_build_dir()
-        print "rm "+self.get_binary_file()
+        #print "rm "+self.get_build_dir()
+        #print "rm "+self.get_binary_file()
 
 	shutil.rmtree(self.get_build_dir())
 	
@@ -201,15 +201,15 @@ class Base(object):
         return inc_dirs
 
     def get_inc_list(self):
-	#print "get_inc_list"
+	#rint "get_inc_list"
         for s in (self.get_include_dirs_required() + self.inc_dirs):
 	    #print "  "+s
             yield "-I" + s
 
     def get_gch_inc_list(self):
-       	#print "get_gch_inc_list"
+       	#rint "get_gch_inc_list"
         for s in (self.get_gch_inc_dirs_required() + [self.gch_inc_dir]):
-	    #print "  "+s
+	    #rint "  "+s
             yield "-I" + s
 
     def get_define_list(self):
@@ -325,25 +325,25 @@ class Base(object):
 
 	def do_o_dep(proj, target, deps):
             df = self.get_dep_for(deps[0])
-	    #print deps[0]
-	    #print df
+	    #rint deps[0]
+	    #rint df
             with open(df,'r') as f:
 	        dep = f.read().split("\n")
 
 	    dep = list(filter_local_gch_2(proj, dep))
 
-	    #print "dep"
+	    #rint "dep"
 	    for l in dep:
-                #print "  ",l
+                #rint "  ",l
 		yield l
 
 	def get_gch_for_any(proj, f):
 	    """
 	    convert any local header to correct gch
 	    """
-	    #print "get gch for any"
+	    #rint "get gch for any"
             rel = os.path.relpath(f, proj.root_dir)
-	    #print "rel = "+rel
+	    #rint "rel = "+rel
 
             h = rel
             while h:
@@ -351,11 +351,11 @@ class Base(object):
 	        if t == 'include':
 		   break
 
-	    #print "h = "+h
+	    #rint "h = "+h
 	    p = proj.projects[h]
-            #print p
+            #rint p
 	    g = p.get_gch_for(f)
-            #print "g = "+g
+            #rint "g = "+g
 	    return g
 
 	def filter_local_gch(proj, deps):
@@ -466,11 +466,11 @@ class Base(object):
 
 	h_files = list(self.get_h_files())
 	for f in h_files:
-	    #print "  "+f
+	    #rint "  "+f
 	    pass
 	gch_files = list(self.get_gch_files())
 	for f in gch_files:
-	    #print "  "+f
+	    #rint "  "+f
 	    pass
 
         # make rules for general cpp project

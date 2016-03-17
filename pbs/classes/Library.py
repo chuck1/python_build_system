@@ -1,5 +1,6 @@
 import jinja2
 import os
+import stat
 
 import pbs.func
 import pbs.classes.Base
@@ -61,12 +62,12 @@ class Library(pbs.classes.Base.Base):
         h,filename = os.path.split(r)
         while True:
             h,t = os.path.split(h)
-            print 'h',repr(h),'t', repr(t)
+            #rint 'h',repr(h),'t', repr(t)
             if t == '':
                 break
             lst.insert(0,t)
 
-        print "lst",lst
+        #rint "lst",lst
 
         lst2 = ["namespace {} {{".format(l) for l in lst]
 
@@ -88,9 +89,9 @@ class Library(pbs.classes.Base.Base):
         
         full_name = ns_name + "::" + class_name
         
-        print "file ",filename
-        print "class",class_name
-        print "full ",full_name
+        #rint "file ",filename
+        #rint "class",class_name
+        #rint "full ",full_name
 
         typedef_verb = "typedef gal::verb::Verbosity<{}> VERB;".format(full_name)
 
@@ -119,8 +120,22 @@ class Library(pbs.classes.Base.Base):
         
         out = preamble + "\n" + out
         
-        with open(filename_out, 'w') as f:
-            f.write(out)
+        try:
+            os.chmod(filename_out, stat.S_IRUSR | stat.S_IWUSR )
+        except: pass
+
+        try:
+
+            with open(filename_out, 'w') as f:
+                f.write(out)
+        
+            os.chmod(filename_out, stat.S_IRUSR)
+        except Exception as e:
+            print e
+
+
+        st = os.stat(filename_out)
+        print "mode", st.st_mode
 
     def render(self, temp, c):
 
@@ -130,8 +145,8 @@ class Library(pbs.classes.Base.Base):
         c['master_config_dir ']  = self.proj.root_dir
         c['name']                = self.name
    
-        print "context"
-        print "\n".join(["  {:32}{}".format(k,repr(v)) for k,v in c.items()])
+        #rint "context"
+        #rint "\n".join(["  {:32}{}".format(k,repr(v)) for k,v in c.items()])
 
         out = temp.render(c)
 
