@@ -8,6 +8,9 @@ class Executable(pbs.classes.Base.Base):
     def __init__(self, name, proj):
         super(Executable, self).__init__(name, proj)
 
+        # for user to overwrite
+        self.c_flags = ""
+
         #rint "executable " + name
 
         self.config_file = pbs.func.get_caller()
@@ -93,9 +96,10 @@ class Executable(pbs.classes.Base.Base):
             temp = jinja2.Template(f.read())
         
         out = temp.render(
-                root_dir = self.root,
-                inc_str = inc_str,
-                define_str = define_str,
+                c_flags =           self.c_flags,
+                define_str =        define_str,
+                root_dir =          self.root,
+                inc_str =           inc_str,
                 inc_dir = self.inc_dir,
                 src_dir = self.src_dir,
                 build_dir =     self.get_build_dir(),
