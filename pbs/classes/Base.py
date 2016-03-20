@@ -179,8 +179,11 @@ class Base(object):
         libs = []
         for r in self.reqs:
             for l in r.l.libs:
-                if l[0] == ":":
-                    libs.append(l[1:])
+                #if l[0] == ":":
+                #    libs.append(l[1:])
+                #print "lib ", r.l.get_binary_file()
+                libs.append(r.l.get_binary_file())
+                pass
         return libs
         
     def get_library_dirs_required(self):
