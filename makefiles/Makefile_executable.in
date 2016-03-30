@@ -5,6 +5,7 @@ build_dir    = {{ build_dir }}
 inc          = {{ inc_str }} -I$(inc_dir)
 define_str   = {{ define_str }}
 binary       = {{ binary_path }}
+binary_prof  = {{ binary_path }}_prof
 lib_long_str = {{ lib_long_str }}
 lib_link_str = {{ lib_link_str }}
 lib_dir_str  = {{ lib_dir_str }}
@@ -36,7 +37,7 @@ CARGS = $(define_str) $(CFLAGS) $(inc)
 
 .PHONY: all
 
-all: $(binary)
+all: $(binary) $(binary_prof)
 	@bash -c "echo -e \"$(COLOR_BLUE)$(build_dir)$(COLOR_RESET)\""
 
 
@@ -48,6 +49,10 @@ include $(compiler_dir)/makefiles/cpp_library.mk
 $(binary): $(obj) $(lib_long_str)
 	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
 	@$(CC) $(CARGS) $(obj) -o $@ $(lib_dir_str) $(lib_link_str) $(lib_link_str) -lpthread
+
+$(binary_prof): $(obj) $(lib_long_str)
+	@bash -c "echo -e \"$(COLOR_BLUE)build $@$(COLOR_RESET)\""
+	@$(CC) $(CARGS) -pg $(obj) -o $@ $(lib_dir_str) $(lib_link_str) $(lib_link_str) -lpthread
 
 
 include $(compiler_dir)/makefiles/clean.mk
