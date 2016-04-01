@@ -31,7 +31,7 @@ include $(compiler_dir)/makefiles/color.mk
 
 
 CC = g++
-CFLAGS = -g -std=c++0x -Wno-format-security -rdynamic {{ c_flags }}
+CFLAGS = -g -std=c++0x -Wno-format-security -rdynamic -pthread {{ c_flags }}
 
 CARGS = $(define_str) $(CFLAGS) $(inc)
 

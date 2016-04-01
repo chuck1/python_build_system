@@ -18,7 +18,7 @@ process_dir = $(build_dir)/process
 
 include $(compiler_dir)/makefiles/color.mk
 
-CFLAGS  = -g -pg -std=c++0x -rdynamic -fPIC
+CFLAGS  = -g -pg -std=c++0x -rdynamic -fPIC -pthread
 CFLAGS += -Wno-format-security
 CFLAGS += -Wall -Werror
 CFLAGS += -Wno-unused-local-typedefs -Wno-unknown-pragmas
