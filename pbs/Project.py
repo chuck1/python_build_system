@@ -7,6 +7,7 @@ import inspect
 import tarfile
 
 import pbs.classes.Static
+import pbs.classes.Executable
 import pbs.settings
 
 #from pbs.Library import *
@@ -202,7 +203,8 @@ class Project(object):
        
         self.execute()
 	
-        try:
+        #try:
+        if 1:
     	    if self.args.p:
 	        l = self.libraries[self.args.p[0]]
 	        l.preprocess(self.args.p[1], self.args.p[2])
@@ -220,8 +222,9 @@ class Project(object):
                 self.render(
                     os.path.join(self.compiler_dir, "Doxyfile_all"),
                     os.path.join(self.build_dir, "Doxyfile"))
-        except:
-            pass
+        #except Exception as e:
+        #    print "exception", repr(e), repr(e.message)
+        #    pass
     
     def clean(self):
         print "clean"
