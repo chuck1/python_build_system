@@ -7,7 +7,7 @@ import itertools
 
 import pbs
 import pbs.func
-
+import pbs.doc
 
 
 class Req(object):
@@ -18,6 +18,8 @@ class Req(object):
     def __init__(self, l, whole):
         self.l = l
         self.whole = whole
+
+class Dirs(object): pass
 
 class Base(object):
     """
@@ -44,6 +46,11 @@ class Base(object):
         self.tests = []
 
         self.root = pbs.func.get_caller_dir(4)
+
+        self.doc = pbs.doc.Doc(self)
+        self.dirs = Dirs()
+
+        self.dirs.header_process = os.path.join(self.get_build_dir(), "process", "include")
 
     def get_objects_dir(self):
         return os.path.join(
@@ -266,8 +273,16 @@ class Base(object):
                 project_name      = self.name,
                 makefile		= self.get_makefile_filename_out(),
 		tag_files		= tag_files,
+                doc = self.doc,
+                dirs = self.dirs,
                 )
-    
+        
+        context = {
+                "doc":self.doc,
+                "dirs":self.dirs}
+
+        out2 = temp.render(context)
+
         with open(fn_out,'w') as f:
             f.write(out)
 
@@ -537,11 +552,6 @@ class Base(object):
     def generate_doxyfile(self):
 
         self.render2(
-            os.path.join(
-                    self.proj.compiler_dir,
-                    "Doxyfile"),
-            os.path.join(
-                    self.get_build_dir(),
-                    "Doxyfile")
-            )
+            os.path.join(self.proj.compiler_dir, "Doxyfile"),
+            os.path.join(self.get_build_dir(), "Doxyfile"))
 

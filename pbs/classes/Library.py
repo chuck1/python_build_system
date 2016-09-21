@@ -20,8 +20,10 @@ class Library(pbs.classes.Base.Base):
         self.gch_inc_dir = os.path.join(self.get_build_dir(), "gch", "include")
 
         #self.build_dir = os.path.join(self.root,"build")
-            
+        
         self.inc_dirs.append(self.inc_dir)
+
+
         self.inc_dirs.append(os.path.join(self.get_build_dir(), "process", "include"))
 
         # append long library name to libs
