@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['s',['S',['classesolv_1_1VariableStack.html#af1828b16f16f0bb2c5f32b3f57681b60',1,'esolv::VariableStack::S()'],['classhvac_1_1components_1_1expansion__valve_1_1Base.html#aab182f0a06ffb0a08164a211213b3eb9',1,'hvac::components::expansion_valve::Base::s()']]],
+  ['s',['s',['classhvac_1_1components_1_1expansion__valve_1_1Base.html#aab182f0a06ffb0a08164a211213b3eb9',1,'hvac::components::expansion_valve::Base::s()'],['classesolv_1_1VariableStack.html#af1828b16f16f0bb2c5f32b3f57681b60',1,'esolv::VariableStack::S()']]],
   ['s_5fadd',['S_Add',['namespaceesolv_1_1symbol_1_1operation.html#a6331b641f45db2215788995e24fa8021',1,'esolv::symbol::operation']]],
   ['s_5fair',['S_Air',['namespacehvac_1_1point.html#ae1946a3118c32ca0d10a7cadcb201410',1,'hvac::point::S_Air()'],['namespacehvac_1_1state.html#a857c81c47f8e9398c4ae9ca128623d06',1,'hvac::state::S_Air()']]],
   ['s_5fairside',['S_AirSide',['namespacehvac_1_1components.html#a9c8c443cf9d8a0caf18016cdb02f929a',1,'hvac::components']]],

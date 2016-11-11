@@ -17,6 +17,7 @@ var searchData=
   ['pop_5ftemp',['pop_temp',['classesolv_1_1Storage.html#a398b3e447a00886acfe211e23635867c',1,'esolv::Storage']]],
   ['pressure_5fsurface',['pressure_surface',['classhvac_1_1components_1_1AirSide.html#ac856784edd48dd9d8aa571c66439983f',1,'hvac::components::AirSide']]],
   ['print',['print',['classesolv_1_1Stack.html#a0943f1fb6ac3ccab8e1ee5af5e0031fe',1,'esolv::Stack']]],
+  ['print_5fequations',['print_equations',['namespaceesolv_1_1solve.html#a0bc8417e9cc27d04eb46dd32dd466ec6',1,'esolv::solve']]],
   ['push',['push',['classesolv_1_1Stack.html#a873d71a73dcd238aabab6c44b30b3198',1,'esolv::Stack::push()'],['classesolv_1_1VariableStack.html#a78c77faad6339b88f0e1384d5408efd4',1,'esolv::VariableStack::push()']]],
   ['push_5fget',['push_get',['classesolv_1_1Storage.html#ab58add3c70619a3cafd6ae8dc69bff90',1,'esolv::Storage']]],
   ['push_5ftemp',['push_temp',['classesolv_1_1Storage.html#ace818f014cbc660577791a5c17d7e7d5',1,'esolv::Storage']]]

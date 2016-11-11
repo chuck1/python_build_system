@@ -30,7 +30,7 @@ include $(compiler_dir)/makefiles/color.mk
 #obj           = $(patsubst $(src_dir)/%.cpp,    $(build_dir)/objects/%.cpp.o, $(src))
 
 
-CC = g++
+CC = g++-4.9
 CFLAGS = -g -std=c++0x -Wno-format-security -rdynamic -pthread {{ c_flags }}
 
 CARGS = $(define_str) $(CFLAGS) $(inc)
