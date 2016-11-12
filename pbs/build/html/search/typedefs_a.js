@@ -17,11 +17,11 @@ var searchData=
   ['s_5fsaturated',['S_Saturated',['namespacehvac_1_1state.html#a0cf05106ab3dac925253ce8bd174e230',1,'hvac::state']]],
   ['s_5fsiso',['S_SISO',['namespacehvac_1_1components.html#ad48cfdd296d0ef4160a1944d0301cb04',1,'hvac::components']]],
   ['s_5fstorage',['S_Storage',['namespaceesolv.html#a24ffd61fdcba47c6926158d823f72dc2',1,'esolv']]],
-  ['s_5fsymbolstorage',['S_SymbolStorage',['namespaceesolv_1_1symbol.html#adf0f2f528382ea60662cfb5e3032e91e',1,'esolv::symbol']]],
+  ['s_5fsymbol',['S_Symbol',['namespaceesolv_1_1symbol.html#ae25b89581d7571cad1d278fe230d1863',1,'esolv::symbol']]],
   ['s_5ftemperatureabsolute',['S_TemperatureAbsolute',['namespaceesolv_1_1unit.html#a0611fa4d17cf56f7c2d748ca3d53e180',1,'esolv::unit']]],
   ['s_5ftubeside',['S_TubeSide',['namespacehvac_1_1components.html#a6af105ae0d416e0694b31987e678723f',1,'hvac::components']]],
   ['s_5funit',['S_Unit',['namespaceesolv_1_1quantity.html#a148caaf70745cbd1f063c6f80ab47794',1,'esolv::quantity']]],
   ['s_5fwater',['S_Water',['namespacehvac_1_1point.html#ad428bc754d0e990131c538a53ad5fda6',1,'hvac::point']]],
   ['set_5foperand',['SET_Operand',['namespaceesolv_1_1symbol.html#a9ca86f6b82aa2be145e8c2c4ebcfbff9',1,'esolv::symbol']]],
-  ['set_5fsymbolstorage',['SET_SymbolStorage',['namespaceesolv_1_1symbol.html#a1fcab789ff31bad1456cf8dcf009ff79',1,'esolv::symbol']]]
+  ['set_5fsymbol',['SET_Symbol',['namespaceesolv_1_1symbol.html#adde6d98327535de75d7f59a0a5606b50',1,'esolv::symbol']]]
 ];

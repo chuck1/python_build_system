@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['variables',['variables',['classesolv_1_1symbol_1_1SymbolStorage.html#ab3aef7865c6e46bffc31ab2cbd28e166',1,'esolv::symbol::SymbolStorage::variables()'],['namespaceesolv_1_1util.html#a82f6b9ef1c5f090a9c599886a10687b9',1,'esolv::util::variables()']]],
-  ['variables_5funknown',['variables_unknown',['classesolv_1_1symbol_1_1Operand.html#a0cf61b05a87d5cbd956b8caf79909194',1,'esolv::quantity::Base::variables_unknown()'],['classesolv_1_1symbol_1_1SymbolStorage.html#ae638046c2d6855720d487cbdb97b937b',1,'esolv::symbol::SymbolStorage::variables_unknown()'],['namespaceesolv_1_1util.html#a49ca4d7a75ed2652bb7078e1a4860dab',1,'esolv::util::variables_unknown(esolv::symbol::SET_SymbolStorage)'],['namespaceesolv_1_1util.html#a3b8162d1900184295fa564c72e003fb7',1,'esolv::util::variables_unknown(esolv::symbol::SET_Operand)']]],
+  ['variables',['variables',['classesolv_1_1symbol_1_1Symbol.html#a8e74b77f52905f358d973f1d74f4dfeb',1,'esolv::symbol::Symbol::variables()'],['namespaceesolv_1_1util.html#a05ba16b78daa2d79f540882b05880887',1,'esolv::util::variables()']]],
+  ['variables_5funknown',['variables_unknown',['classesolv_1_1symbol_1_1Operand.html#a29e2db027e5f50539c072bc125b8d900',1,'esolv::quantity::Base::variables_unknown()'],['classesolv_1_1symbol_1_1Symbol.html#ae6d84d09880267fd39f86c31ccbc42d7',1,'esolv::symbol::Symbol::variables_unknown()'],['namespaceesolv_1_1util.html#ab042c483fbe21e37ff11ee6529479f7a',1,'esolv::util::variables_unknown(esolv::symbol::SET_Symbol)'],['namespaceesolv_1_1util.html#aea7a03070b7c0f327c53172e2a73c6f7',1,'esolv::util::variables_unknown(esolv::symbol::SET_Operand)']]],
   ['variablestack',['VariableStack',['classesolv_1_1VariableStack.html#a23b254e0a59d3e39540709491180c812',1,'esolv::VariableStack']]],
   ['vert',['vert',['classgr_1_1vert.html#ad2424bfa45768d4e61c394f891c22a64',1,'gr::vert']]],
   ['vert_5fbegin',['vert_begin',['classgr_1_1graph.html#aa08d97b096e332fbb80f15fbb995eba0',1,'gr::graph']]],

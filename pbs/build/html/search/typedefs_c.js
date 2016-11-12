@@ -5,7 +5,7 @@ var searchData=
   ['vec_5fe',['VEC_E',['classesolv_1_1Storage.html#a1b74b2788e95413ec2e82aee5d966ca1',1,'esolv::Storage']]],
   ['vec_5fe_5fvec',['VEC_E_VEC',['classesolv_1_1Storage.html#a5e907377fb845391c1e629a409fe878f',1,'esolv::Storage']]],
   ['vec_5foperand',['VEC_Operand',['namespaceesolv_1_1symbol.html#acf7ebbee52f29d025ce8821d9e04ea7b',1,'esolv::symbol']]],
-  ['vec_5fsymbolstorage',['VEC_SymbolStorage',['classesolv_1_1Storage.html#affef140e2cc5d96eb3fb06fb2020a2ce',1,'esolv::Storage::VEC_SymbolStorage()'],['namespaceesolv_1_1symbol.html#aa311f945cc2558981ae3c08ea27bc793',1,'esolv::symbol::VEC_SymbolStorage()']]],
+  ['vec_5fsymbol',['VEC_Symbol',['classesolv_1_1Storage.html#adfd8deeb6d04150b78121bb6c2ebe605',1,'esolv::Storage::VEC_Symbol()'],['namespaceesolv_1_1symbol.html#a412cf14709f3fc56a6d17eb17a93314e',1,'esolv::symbol::VEC_Symbol()']]],
   ['vert',['VERT',['namespacegr.html#a07ecb12101d44e459aed5097b48dcdfa',1,'gr']]],
   ['vert_5ffunc',['VERT_FUNC',['namespacegr.html#a214351b8075d5f5f4acb5ab3c089c0e3',1,'gr']]],
   ['vert_5fs',['VERT_S',['namespacegr.html#af2a10e8e4e3ddde93be1b2528b1c1ce1',1,'gr']]],

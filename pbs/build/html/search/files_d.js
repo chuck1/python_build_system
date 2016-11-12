@@ -7,7 +7,7 @@ var searchData=
   ['stack_2ehpp',['Stack.hpp',['Stack_8hpp.html',1,'']]],
   ['storage_2ehpp',['Storage.hpp',['Storage_8hpp.html',1,'']]],
   ['symbol_2ehpp',['Symbol.hpp',['Symbol_8hpp.html',1,'']]],
-  ['symbolstorage_2ehpp',['SymbolStorage.hpp',['SymbolStorage_8hpp.html',1,'']]],
-  ['symbolstoragecomp_2ehpp',['SymbolStorageComp.hpp',['SymbolStorageComp_8hpp.html',1,'']]],
+  ['symbol_5fold_2ehpp',['Symbol_old.hpp',['Symbol__old_8hpp.html',1,'']]],
+  ['symbolcomp_2ehpp',['SymbolComp.hpp',['SymbolComp_8hpp.html',1,'']]],
   ['system_2ehpp',['System.hpp',['System_8hpp.html',1,'']]]
 ];
