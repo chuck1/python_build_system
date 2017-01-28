@@ -22,7 +22,7 @@ $(obj): $(objects_dir)/%.cpp.o: $(src_dir)/%.cpp
 	@mkdir -p $(dir $@)
 	@mkdir -p $(dir $(depends_dir)/$*.cpp.d)
 	@$(MAKEDEPEND)
-	@$(CC) -c $(CARGS) -o $@ $<
+	$(CC) -c $(CARGS) -o $@ $<
 
 $(pre): $(build_dir)/objects/%.cpp.pre: $(src_dir)/%.cpp
 	@bash -c "echo -e \"$(COLOR_YELLOW)precompiler $@$(COLOR_RESET)\""
