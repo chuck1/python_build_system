@@ -140,10 +140,23 @@ class Base(object):
 
     def require(self, o, lib_type = 'static', whole = False):
         if isinstance(o, list):
+            raise Exception("deprecated")
             for l in o:
                 self.require1(l, lib_type, whole)
         else:
             self.require1(o, lib_type, whole)
+
+    def require_from_config(self, filename, name, lib_type = 'static', whole = False):
+        """
+        create dependency by passing absolute path of a config.py file
+        """
+        try:
+            l = self.proj.libraries[name + lib_type]
+        except:
+            execfile(filename, {'self':self.proj})
+            l = self.proj.libraries[name + lib_type]
+        
+        self.reqs.append(Req(l, whole)) 
 
     def require1(self, name, lib_type, whole):
         # look for .pmake_config file in ~/usr/lib/pmake
