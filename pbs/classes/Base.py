@@ -565,6 +565,8 @@ class Base(object):
     def generate_doxyfile(self):
 
         self.render2(
-            os.path.join(self.proj.compiler_dir, "Doxyfile"),
+            os.path.join(self.proj.compiler_dir, "templates", "Doxyfile"),
             os.path.join(self.get_build_dir(), "Doxyfile"))
+
+
 

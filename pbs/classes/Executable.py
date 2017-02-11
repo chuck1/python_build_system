@@ -7,9 +7,12 @@ import pbs.func
 class Executable(pbs.classes.Base.Base):
     def __init__(self, name, proj):
         super(Executable, self).__init__(name, proj)
-
+        
         # for user to overwrite
         self.c_flags = ""
+        
+        # for user to add definitions to use in source code compilation
+        self.defines = []
 
         #rint "executable " + name
 
@@ -88,9 +91,8 @@ class Executable(pbs.classes.Base.Base):
         lib_long_str  = " ".join(list(self.get_libraries_long_required()))
         lib_link_str  = self.get_link_str()
         lib_dir_str   = " ".join(list(self.get_library_dirs_required()))
-        define_str    = " ".join(list("-D" + d for d in self.proj.defines))
+        define_str    = " ".join(list("-D" + d for d in (self.proj.defines + self.defines)))
        
-        #rint "defines " + define_str
         
         with open(os.path.join(self.proj.compiler_dir, "makefiles", "Makefile_executable.in")) as f:
             temp = jinja2.Template(f.read())

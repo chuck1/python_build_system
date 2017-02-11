@@ -70,12 +70,19 @@ class Project(object):
         self.defines.append(s)
 
     def include(self, foldername):
-        st = inspect.stack()
-        s = st[1]
-        caller = os.path.abspath(s[1])
-        base = os.path.dirname(caller)
-    
-        filename = os.path.join(base,foldername,"config.py")
+        """
+        include a config file in this project
+        if foldername is relative, assume it is a folder in the same location as the config file for this project
+        """
+        if os.path.isabs(foldername):
+            filename = os.path.join(foldername,"config.py")
+        else:
+            st = inspect.stack()
+            s = st[1]
+            caller = os.path.abspath(s[1])
+            base = os.path.dirname(caller)
+        
+            filename = os.path.join(base,foldername,"config.py")
     
         self.config_files.append(filename)
     
@@ -220,7 +227,7 @@ class Project(object):
                 self.write_info_file()
 
                 self.render(
-                    os.path.join(self.compiler_dir, "Doxyfile_all"),
+                    os.path.join(self.compiler_dir, "templates", "Doxyfile_all"),
                     os.path.join(self.build_dir, "Doxyfile"))
         #except Exception as e:
         #    print "exception", repr(e), repr(e.message)
