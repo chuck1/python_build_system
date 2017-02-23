@@ -21,3 +21,7 @@ edit templates in makefiles/
 
 ### define an external library
 
+### add defines
+
+    project.add_define("-DFOO=1")
+
