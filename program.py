@@ -11,6 +11,8 @@ def Make(args):
     
     m = pymake.Makefile()
     
+    m.rules += list(p.rules())
+
     m.make('all')
 
 #######################################
