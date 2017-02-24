@@ -44,14 +44,41 @@ class CSourceFile(pymake.RuleStatic):
         yield RuleStatic([self.f_out], [self.f_in], self.build)
 
     def build(self, f_out, f_in):
-        for f in f_out: makedirs(f)
-        cmd = ['gcc','-g','-c'] + f_in + ['-o'] + f_out
+        f_out = f_out[0]
+        makedirs(f_out)
+        cmd = ['gcc','-g','-c'] + f_in + ['-o', f_out]
         print " ".join(cmd)
         subprocess.call(cmd)
         
 
 """
-cpp library
+the actual library file
+"""
+class CStaticLibrary(pymake.Rule):
+    def __init__(self, library_project):
+        self.library_project = library_project
+ 
+        super(CStaticLibrary, self).__init__(self.f_out, self.f_in, self.build)
+    
+    def f_out(self):
+        return [self.library_project.library_file]
+
+    def f_in(self):
+        for s in self.library_project.rules_source_files():
+            yield list(s.f_out())[0]
+
+    def build(self, f_out, f_in):
+        f_out = f_out[0]
+        makedirs(f_out)
+
+        cmd = ['ar', '-cvq', f_out] + f_in
+        
+        print ' '.join(cmd)
+
+        subprocess.call(cmd)
+
+"""
+cpp library project
 """
 class Library(pymake.Rule):
     def __init__(self, name, config_file):
@@ -62,6 +89,7 @@ class Library(pymake.Rule):
         self.source_extensions = ['.cpp']
         self.build_dir = os.path.join(self.config_dir, 'build')
         self.object_dir = os.path.join(self.build_dir, 'object')
+        self.library_file = os.path.join(self.build_dir, 'lib' + self.name + '.a')
 
         super(Library, self).__init__(self.f_out, self.f_in, self.build)
     
@@ -69,9 +97,7 @@ class Library(pymake.Rule):
         return [self.name+'-all']
     
     def f_in(self):
-        for s in self.rules_source_files():
-            for o in s.f_out():
-                yield o
+        return [self.library_file]
 
     def build(self, f_out, f_in):
         print 'Library build', f_out, f_in
@@ -93,6 +119,8 @@ class Library(pymake.Rule):
         """
         
         yield self
+
+        yield CStaticLibrary(self)
 
         for s in self.rules_source_files():
             yield s
