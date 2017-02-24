@@ -1,7 +1,0 @@
-digraph {
-	homechuckhomegitpbstesttest1test1srcAcpp [label="/home/chuck/home/git/pbs/test/test1/test1/src/A.cpp"]
-	homechuckhomegitpbstesttest1test1includeAhpp [label="/home/chuck/home/git/pbs/test/test1/test1/include/A.hpp"]
-	homechuckhomegitpbstesttest1test1srcmaincpp [label="/home/chuck/home/git/pbs/test/test1/test1/src/main.cpp"]
-		homechuckhomegitpbstesttest1test1srcAcpp -> homechuckhomegitpbstesttest1test1includeAhpp
-		homechuckhomegitpbstesttest1test1srcmaincpp -> homechuckhomegitpbstesttest1test1includeAhpp
-}

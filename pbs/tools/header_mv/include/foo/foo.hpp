@@ -1,2 +1,0 @@
-
-#include <foo/bar.hpp>
