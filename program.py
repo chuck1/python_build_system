@@ -13,7 +13,10 @@ def Make(args):
     
     m.rules += list(p.rules())
 
-    m.make('all')
+    try:
+        m.make('all')
+    except pymake.BuildError as ex:
+        print ex
 
 #######################################
 

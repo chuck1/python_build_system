@@ -29,6 +29,7 @@ class Project(object):
 
     def build(self, f_out, f_in):
         print 'Project build out:', f_out, 'in:', f_in
+        return 0
 
 
 class CSourceFile(pymake.RuleStatic):
@@ -48,7 +49,7 @@ class CSourceFile(pymake.RuleStatic):
         makedirs(f_out)
         cmd = ['gcc','-g','-c'] + f_in + ['-o', f_out]
         print " ".join(cmd)
-        subprocess.call(cmd)
+        return subprocess.call(cmd)
         
 
 """
@@ -101,6 +102,7 @@ class Library(pymake.Rule):
 
     def build(self, f_out, f_in):
         print 'Library build', f_out, f_in
+        return 0
 
     def source_files(self):
         for root, dirs, files in os.walk(self.source_dir):
