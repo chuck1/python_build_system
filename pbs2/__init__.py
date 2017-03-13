@@ -4,6 +4,8 @@ import pymake
 import subprocess
 import jinja2
 
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
 def makedirs(f):
     d = os.path.dirname(f)
     try:
@@ -86,9 +88,14 @@ class CHeaderTemplateFile(pymake.Rule):
     def build(self, f_out, f_in):
         print "CHeaderProcessedFile", self.file_out, self.file_in
 
-        with open(self.file_in, 'r') as f:
-            temp = jinja2.Template(f.read())
+        #ith open(self.file_in, 'r') as f:
+        #   temp = jinja2.Template(f.read())
+
+        env = jinja2.environment.Environment()
+        env.loader = jinja2.FileSystemLoader([os.path.join(BASE_DIR,'templates'), '.'])
         
+        temp = env.get_template(self.file_in)
+
         # making special macros
 
         r = os.path.relpath(self.file_in, self.library_project.include_dir)
