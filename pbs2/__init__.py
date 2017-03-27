@@ -4,14 +4,11 @@ import pymake
 import subprocess
 import jinja2
 
+import pbs2.os0
+import pbs2.rules
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-def makedirs(f):
-    d = os.path.dirname(f)
-    try:
-        os.makedirs(d)
-    except OSError:
-        pass
 
 class Project(object):
     def __init__(self):
@@ -20,7 +17,7 @@ class Project(object):
         """
         execute a python script
         """
-        execfile(filename, {'self': self, '__file__': filename})
+        exec(open(filename).read(), {'self': self, '__file__': filename, '__dir__': os.path.dirname(filename)})
     def rules(self):
         """
         generator of rules
@@ -32,38 +29,14 @@ class Project(object):
                 yield r
 
     def build(self, f_out, f_in):
-        print 'Project build out:', f_out, 'in:', f_in
+        print('Project build out:', f_out, 'in:', f_in)
         return 0
 
-
-class CSourceFile(pymake.Rule):
-    def __init__(self, library_project, filename):
-        self.library_project = library_project
-
-        h,_ = os.path.splitext(os.path.relpath(filename, library_project.source_dir))
-        
-        self.file_source = filename
-
-        self.file_object = os.path.join(library_project.object_dir, h+'.o')
-
-        super(CSourceFile, self).__init__(self.f_out, self.f_in, self.build)
-
-    def f_out(self):
-        yield self.file_object
-    
-    def f_in(self):
-        yield self.file_source
-        for f in self.library_project.files_header_processed(): yield f
-
-    def build(self, f_out, f_in):
-        f_out = f_out[0]
-        makedirs(f_out)
-
-        include_args = ['-I'+d for d in self.library_project.include_dirs()]
-
-        cmd = ['gcc','-g','-c', self.file_source, '-o', self.file_object] + include_args
-        print " ".join(cmd)
-        return subprocess.call(cmd)
+    def find_part(self, name):
+        for p in self.parts:
+            if p.name == name:
+                return p
+        raise Exception('part not found: '+name)
 
 class CHeaderTemplateFile(pymake.Rule):
     def __init__(self, library_project, filename):
@@ -86,13 +59,15 @@ class CHeaderTemplateFile(pymake.Rule):
         yield self.file_out
 
     def build(self, f_out, f_in):
-        print "CHeaderProcessedFile", self.file_out, self.file_in
+        print("CHeaderProcessedFile", self.file_out, self.file_in)
 
         #ith open(self.file_in, 'r') as f:
         #   temp = jinja2.Template(f.read())
 
         env = jinja2.environment.Environment()
-        env.loader = jinja2.FileSystemLoader([os.path.join(BASE_DIR,'templates'), '.'])
+        template_dirs = [os.path.join(BASE_DIR,'templates'), self.library_project.config_dir, '/']
+        #print('template_dirs',template_dirs)
+        env.loader = jinja2.FileSystemLoader(template_dirs)
         
         temp = env.get_template(self.file_in)
 
@@ -165,7 +140,7 @@ class CHeaderTemplateFile(pymake.Rule):
             os.chmod(self.file_out, stat.S_IRUSR | stat.S_IWUSR )
         except: pass
 
-        makedirs(self.file_out)
+        pbs2.os0.makedirs(self.file_out)
 
         try:
             with open(self.file_out, 'w') as f:
@@ -173,7 +148,7 @@ class CHeaderTemplateFile(pymake.Rule):
         
             os.chmod(self.file_out, stat.S_IRUSR)
         except Exception as e:
-            print e
+            print(e)
 
         st = os.stat(self.file_out)
 
@@ -189,7 +164,7 @@ class CStaticLibrary(pymake.Rule):
         super(CStaticLibrary, self).__init__(self.f_out, self.f_in, self.build)
         
     def f_out(self):
-        return [self.library_project.library_file]
+        return [self.library_project.binary_file()]
 
     def f_in(self):
         for s in self.library_project.files_object():
@@ -200,11 +175,55 @@ class CStaticLibrary(pymake.Rule):
 
     def build(self, f_out, f_in):
         f_out = f_out[0]
-        makedirs(f_out)
+        pbs2.os0.makedirs(f_out)
 
         cmd = ['ar', '-cvq', f_out] + list(self.library_project.files_object())
         
-        print " ".join(cmd)
+        print(" ".join(cmd))
+
+        return subprocess.call(cmd)
+
+    def rules(self):
+        """
+        generator of rules
+        """
+        yield self
+
+        for s in self.library_project.rules_source_files():
+            yield s
+
+"""
+the actual executable file
+"""
+class CExecutable(pymake.Rule):
+    def __init__(self, library_project):
+        self.library_project = library_project
+ 
+        super(CExecutable, self).__init__(self.f_out, self.f_in, self.build)
+        
+    def f_out(self):
+        return [self.library_project.binary_file()]
+
+    def f_in(self):
+        for s in self.library_project.files_object():
+            yield s
+
+        for s in self.library_project.files_header_processed():
+            yield s
+
+    def build(self, f_out, f_in):
+        f_out = f_out[0]
+        pbs2.os0.makedirs(f_out)
+        
+        args = ['-g', '-std=c++11']
+
+        args_link = ['-l' + d.name for d in self.library_project.deps]
+
+        args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
+
+        cmd = ['g++'] + args + ['-o', f_out] + list(self.library_project.files_object()) + args_library_dir + args_link
+        
+        print(" ".join(cmd))
 
         return subprocess.call(cmd)
 
@@ -219,11 +238,22 @@ class CStaticLibrary(pymake.Rule):
 
 """
 cpp library project
+
+how to add include dirs
+
+    l.l_include_dirs.append('directoy')
+
+how to add defines
+
+    l.l_defines.append('A=1')
+
 """
-class Library(pymake.Rule):
-    def __init__(self, name, config_file):
-        #print name, config_file
+class CProject(pymake.Rule):
+    def __init__(self, project, name, config_file):
+        #print( name, config_file)
+        self.project = project
         self.name = name
+        #print('config_file',config_file)
         self.config_dir = os.path.dirname(config_file)
         self.source_dir = os.path.join(self.config_dir, 'source')
         
@@ -234,27 +264,46 @@ class Library(pymake.Rule):
         self.include_dir = os.path.join(self.config_dir, 'include')
         self.process_include_dir = os.path.join(self.process_dir, 'include')
 
-        self.library_file = os.path.join(self.build_dir, 'lib' + self.name + '.a')
 
-        super(Library, self).__init__(self.f_out, self.f_in, self.build)
+        self.deps = list()
+        self.l_defines = list()
+        self.l_include_dirs = list()
 
-        print 'files header unprocessed',list(self.files_header_unprocessed())
-        print 'files header processed  ',list(self.files_header_processed())
+        super(CProject, self).__init__(self.f_out, self.f_in, self.build)
+
+        #print('files header unprocessed',list(self.files_header_unprocessed()))
+        #print('files header processed  ',list(self.files_header_processed()))
+
 
     def f_out(self):
         return [self.name+'-all']
     
     def f_in(self):
-        return [self.library_file] + list(self.files_header_processed())
+        return [self.binary_file()] + list(self.files_header_processed())
 
     def build(self, f_out, f_in):
-        print 'Library build out:', f_out, 'in:', f_in
+        #print('Library build out:', f_out, 'in:', f_in)
+        #print('Library build out:', f_out)
         return 0
 
     def include_dirs(self):
-        return [
-                self.include_dir,
-                self.process_include_dir]
+        yield self.include_dir
+        yield self.process_include_dir
+        yield from self.l_include_dirs
+        
+        for d in self.deps:
+            yield from d.include_dirs()
+
+    def defines(self):
+        yield from self.l_defines
+
+    def add_dep(self, name):
+        """
+        add an object to the list of dependencies, referenced by a string containing the name of the dependency
+        dependencies are things like other c libraries that this library requires
+        """
+        
+        self.deps.append(self.project.find_part(name))
 
     def source_files(self):
         for root, dirs, files in os.walk(self.source_dir):
@@ -263,7 +312,7 @@ class Library(pymake.Rule):
                 if ext == '.cpp':
                     #yield os.path.relpath(os.path.join(root,f), self.source_dir)
                     yield os.path.join(root,f)
-    
+
     def files_object(self):
         for f in self.source_files():
             h,_ = os.path.splitext(os.path.relpath(f, self.source_dir))
@@ -283,12 +332,21 @@ class Library(pymake.Rule):
 
     def rules_source_files(self):
         for s in self.source_files():
-            yield CSourceFile(self, s)
+            yield pbs2.rules.CSourceFile(self, s)
     
     def rules_files_header_processed(self):
         for s in self.files_header_unprocessed():
             yield CHeaderTemplateFile(self, s)
 
+
+class Library(CProject):
+
+    def __init__(self, project, name, config_file):
+        super(Library, self).__init__(project, name, config_file)
+
+    def binary_file(self):
+        return os.path.join(self.build_dir, 'lib' + self.name + '.a')
+   
     def rules(self):
         """
         generator of rules
@@ -298,11 +356,31 @@ class Library(pymake.Rule):
 
         l = CStaticLibrary(self)
 
-        for r in l.rules():
-            yield r
+        yield from l.rules()
 
-        for r in self.rules_files_header_processed():
-            yield r
+        yield from self.rules_files_header_processed()
+
+class Executable(CProject):
+
+    def __init__(self, project, name, config_file):
+        super(Executable, self).__init__(project, name, config_file)
+ 
+    def binary_file(self):
+        return os.path.join(self.build_dir, self.name)
+   
+    def rules(self):
+        """
+        generator of rules
+        """
+        
+        yield self
+
+        l = CExecutable(self)
+
+        yield from l.rules()
+
+        yield from self.rules_files_header_processed()
+
 
 
 

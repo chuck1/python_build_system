@@ -2,20 +2,42 @@ import subprocess
 import pymake
 import os
 
-class RuleCSource(pymake.Rule):
-    def __init__(self, f_out, f_in):
-        super(RuleCSource, self).__init__(f_out, f_in, self.func1)
+import pbs2.os0
 
-    def func1(self, f_out, f_in):
-        #try:
-        os.makedirs(os.path.dirname(f_out))
-        #except: pass
+class CSourceFile(pymake.Rule):
+    def __init__(self, library_project, filename):
+        self.library_project = library_project
 
-        subprocess.call(['g++'] + f_in + ['-o', f_out])
+        h,_ = os.path.splitext(os.path.relpath(filename, library_project.source_dir))
+        
+        self.file_source = filename
 
-m = pymake.Makefile()
+        self.file_object = os.path.join(library_project.object_dir, h+'.o')
 
-m.rules['build/a.out'] = RuleCSource('build/a.out', ['main.cpp'])
+        super(CSourceFile, self).__init__(self.f_out, self.f_in, self.build)
 
-m.make('build/a.out')
+    def f_out(self):
+        yield self.file_object
+    
+    def f_in(self):
+        yield self.file_source
+        yield from self.library_project.files_header_processed()
+        yield from self.library_project.deps
+
+    def build(self, f_out, f_in):
+        f_out = f_out[0]
+        pbs2.os0.makedirs(f_out)
+
+        include_args = ['-I' + d for d in self.library_project.include_dirs()]
+        define_args = ['-D' + d for d in self.library_project.defines()]
+
+        cmd = ['g++','-g','-c','-std=c++11', self.file_source, '-o', self.file_object] + include_args + define_args
+        #print(" ".join(cmd))
+        print('CSourceFile', self.file_object)
+        return subprocess.call(cmd)
+
+
+
+
+
 

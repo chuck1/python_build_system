@@ -1,8 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import pbs2
 import pymake
+import re
+import os
+import shutil
 
 def Make(args):
     p = pbs2.Project()
@@ -16,7 +19,28 @@ def Make(args):
     try:
         m.make('all')
     except pymake.BuildError as ex:
-        print ex
+        print(ex)
+
+def Find(args):
+    
+    #print 'Find',repr(args.pattern)
+
+    pat = re.compile(args.pattern)
+
+    for root, dirs, files in os.walk('.'):
+        for f in files:
+            f = os.path.join(root, f)
+
+            m = pat.match(f)
+
+            if m:
+                print(f)
+                #print m.groups()
+                
+                if args.move:
+                    dst = re.sub(args.pattern, args.move, f)
+                    print('move', repr(dst))
+                    shutil.move(f, dst)
 
 #######################################
 
@@ -27,7 +51,15 @@ parser_make = subparsers.add_parser('make')
 parser_make.add_argument('file')
 parser_make.set_defaults(func=Make)
 
+parser_find = subparsers.add_parser('find')
+parser_find.add_argument('pattern')
+parser_find.add_argument('--move')
+parser_find.set_defaults(func=Find)
+
+
 args = parser.parse_args()
 
 args.func(args)
+
+
 
