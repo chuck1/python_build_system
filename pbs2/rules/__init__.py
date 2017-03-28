@@ -24,6 +24,8 @@ class CSourceFile(pymake.Rule):
         yield from self.library_project.files_header_processed()
         yield from self.library_project.deps
 
+        #yield from [d.binary_file() for d in self.library_project.deps]
+
     def build(self, f_out, f_in):
         f_out = f_out[0]
         pbs2.os0.makedirs(f_out)

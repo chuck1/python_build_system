@@ -65,7 +65,7 @@ class CHeaderTemplateFile(pymake.Rule):
         #   temp = jinja2.Template(f.read())
 
         env = jinja2.environment.Environment()
-        template_dirs = [os.path.join(BASE_DIR,'templates'), self.library_project.config_dir, '/']
+        template_dirs = [os.path.join(BASE_DIR,'templates'), self.library_project.config_dir, '/', '.']
         #print('template_dirs',template_dirs)
         env.loader = jinja2.FileSystemLoader(template_dirs)
         
@@ -177,7 +177,7 @@ class CStaticLibrary(pymake.Rule):
         f_out = f_out[0]
         pbs2.os0.makedirs(f_out)
 
-        cmd = ['ar', '-cvq', f_out] + list(self.library_project.files_object())
+        cmd = ['ar', 'rcs', f_out] + list(self.library_project.files_object())
         
         print(" ".join(cmd))
 
@@ -202,14 +202,13 @@ class CExecutable(pymake.Rule):
         super(CExecutable, self).__init__(self.f_out, self.f_in, self.build)
         
     def f_out(self):
-        return [self.library_project.binary_file()]
+        yield self.library_project.binary_file()
 
     def f_in(self):
-        for s in self.library_project.files_object():
-            yield s
+        yield from self.library_project.files_object()
+        yield from self.library_project.files_header_processed()
 
-        for s in self.library_project.files_header_processed():
-            yield s
+        yield from [d.binary_file() for d in self.library_project.deps]
 
     def build(self, f_out, f_in):
         f_out = f_out[0]
@@ -274,16 +273,16 @@ class CProject(pymake.Rule):
         #print('files header unprocessed',list(self.files_header_unprocessed()))
         #print('files header processed  ',list(self.files_header_processed()))
 
-
     def f_out(self):
-        return [self.name+'-all']
+        yield self.name+'-all'
     
     def f_in(self):
-        return [self.binary_file()] + list(self.files_header_processed())
+        yield self.binary_file()
+        yield from self.files_header_processed()
 
     def build(self, f_out, f_in):
         #print('Library build out:', f_out, 'in:', f_in)
-        #print('Library build out:', f_out)
+        print('CProject build name:', self.name, 'out:', f_out)
         return 0
 
     def include_dirs(self):

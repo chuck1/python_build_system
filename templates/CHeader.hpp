@@ -1,6 +1,6 @@
 {{ include_block_open }}
 
-{% block includes %}{% endblock %}
+{% block header %}{% endblock %}
 
 {{ namespace_open }}
 
