@@ -9,6 +9,16 @@ import pbs2.rules
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+def filename_to_list(s):
+    lst = []
+    h,filename = os.path.split(s)
+    while True:
+        h,t = os.path.split(h)
+        #rint 'h',repr(h),'t', repr(t)
+        if t == '':
+            break
+        lst.insert(0,t)
+    return lst
 
 class Project(object):
     def __init__(self):
@@ -58,6 +68,36 @@ class CHeaderTemplateFile(pymake.Rule):
     def f_out(self):
         yield self.file_out
 
+    def get_context(self):
+        c = dict()
+
+        r = os.path.relpath(self.file_in, self.library_project.include_dir)
+        s = r.replace('/','_').replace('.','_').upper()
+
+        include_block_open  = "#ifndef {0}\n#define {0}".format(s)
+        include_block_close = "#endif"
+
+        c['include_block_open']  = include_block_open
+        c['include_block_close'] = include_block_close
+
+        c['logs_compile_level'] = s + "_LOGGER_COMPILE_LEVEL"
+
+        lst = filename_to_list(r)
+
+        lst2 = ["namespace {} {{".format(l) for l in lst]
+
+        namespace_open  = "\n".join(lst2)
+        namespace_close = "}"*len(lst)
+
+        c['namespace_open']  = namespace_open
+        c['namespace_close'] = namespace_close
+       
+        c['header_open']  = include_block_open  + "\n" + namespace_open
+        c['header_close'] = namespace_close + "\n" + include_block_close
+
+        return c
+
+
     def build(self, f_out, f_in):
         print("CHeaderProcessedFile", self.file_out, self.file_in)
 
@@ -74,39 +114,29 @@ class CHeaderTemplateFile(pymake.Rule):
         # making special macros
 
         r = os.path.relpath(self.file_in, self.library_project.include_dir)
-        s = r.replace('/','_').replace('.','_').upper()
+        #s = r.replace('/','_').replace('.','_').upper()
         
-        c = {}
+        c = self.get_context()
         
-        include_block_open  = "#ifndef {0}\n#define {0}".format(s)
-        include_block_close = "#endif"
-
-        c['include_block_open']  = include_block_open
-        c['include_block_close'] = include_block_close
-        
-        lst = []
-        h,filename = os.path.split(r)
-        while True:
-            h,t = os.path.split(h)
-            #rint 'h',repr(h),'t', repr(t)
-            if t == '':
-                break
-            lst.insert(0,t)
 
         #rint "lst",lst
 
-        lst2 = ["namespace {} {{".format(l) for l in lst]
+        #lst2 = ["namespace {} {{".format(l) for l in lst]
 
-        namespace_open  = "\n".join(lst2)
-        namespace_close = "}"*len(lst)
+        #namespace_open  = "\n".join(lst2)
+        #namespace_close = "}"*len(lst)
 
-        c['namespace_open']  = namespace_open
-        c['namespace_close'] = namespace_close
+        #c['namespace_open']  = namespace_open
+        #c['namespace_close'] = namespace_close
        
-        c['header_open']  = include_block_open  + "\n" + namespace_open
-        c['header_close'] = namespace_close + "\n" + include_block_close
+        #c['header_open']  = include_block_open  + "\n" + namespace_open
+        #c['header_close'] = namespace_close + "\n" + include_block_close
 
         # ns and class names
+        
+        h,filename = os.path.split(r)
+
+        lst = filename_to_list(r)
 
         ns_name = "::".join(lst)
         
