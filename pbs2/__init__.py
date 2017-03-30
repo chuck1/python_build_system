@@ -244,7 +244,7 @@ class CExecutable(pymake.Rule):
         f_out = f_out[0]
         pbs2.os0.makedirs(f_out)
         
-        args = ['-g', '-std=c++11']
+        args = ['-g','-pg','-std=c++11']
 
         args_link = ['-l' + d.name for d in self.library_project.deps]
 

@@ -32,8 +32,8 @@ class CSourceFile(pymake.Rule):
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
         define_args = ['-D' + d for d in self.library_project.defines()]
-
-        cmd = ['g++','-g','-c','-std=c++11', self.file_source, '-o', self.file_object] + include_args + define_args
+        args = ['-g','-pg','-c','-std=c++11']
+        cmd = ['g++'] + args + [self.file_source, '-o', self.file_object] + include_args + define_args
         #print(" ".join(cmd))
         print('CSourceFile', self.file_object)
         return subprocess.call(cmd)
