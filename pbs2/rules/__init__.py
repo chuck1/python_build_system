@@ -1,8 +1,7 @@
 import subprocess
 import pymake
+import pymake.os0
 import os
-
-import pbs2.os0
 
 class CSourceFile(pymake.Rule):
     def __init__(self, library_project, filename):
@@ -28,7 +27,7 @@ class CSourceFile(pymake.Rule):
 
     def build(self, f_out, f_in):
         f_out = f_out[0]
-        pbs2.os0.makedirs(f_out)
+        pymake.os0.makedirs(f_out)
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
         define_args = ['-D' + d for d in self.library_project.defines()]

@@ -1,11 +1,11 @@
 import stat
 import os
 import pymake
+import pymake.os0
 import subprocess
 import jinja2
-
-import pbs2.os0
 import pbs2.rules
+import pbs2.rules.doc
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -81,6 +81,7 @@ class CHeaderTemplateFile(pymake.Rule):
         c['include_block_close'] = include_block_close
 
         c['logs_compile_level'] = s + "_LOGGER_COMPILE_LEVEL"
+        c['logs_compile_mode'] = s + "_LOGGER_COMPILE_MODE"
 
         lst = filename_to_list(r)
 
@@ -114,23 +115,8 @@ class CHeaderTemplateFile(pymake.Rule):
         # making special macros
 
         r = os.path.relpath(self.file_in, self.library_project.include_dir)
-        #s = r.replace('/','_').replace('.','_').upper()
         
         c = self.get_context()
-        
-
-        #rint "lst",lst
-
-        #lst2 = ["namespace {} {{".format(l) for l in lst]
-
-        #namespace_open  = "\n".join(lst2)
-        #namespace_close = "}"*len(lst)
-
-        #c['namespace_open']  = namespace_open
-        #c['namespace_close'] = namespace_close
-       
-        #c['header_open']  = include_block_open  + "\n" + namespace_open
-        #c['header_close'] = namespace_close + "\n" + include_block_close
 
         # ns and class names
         
@@ -145,10 +131,6 @@ class CHeaderTemplateFile(pymake.Rule):
         
         full_name = ns_name + "::" + class_name
         
-        #rint "file ",filename
-        #rint "class",class_name
-        #rint "full ",full_name
-
         typedef_verb = "typedef gal::verb::Verbosity<{}> VERB;".format(full_name)
 
         c['type_this'] = full_name
@@ -170,7 +152,7 @@ class CHeaderTemplateFile(pymake.Rule):
             os.chmod(self.file_out, stat.S_IRUSR | stat.S_IWUSR )
         except: pass
 
-        pbs2.os0.makedirs(self.file_out)
+        pymake.os0.makedirs(self.file_out)
 
         try:
             with open(self.file_out, 'w') as f:
@@ -204,12 +186,14 @@ class CStaticLibrary(pymake.Rule):
             yield s
 
     def build(self, f_out, f_in):
+        print('build CStaticLibrary', self.library_project.name)
+
         f_out = f_out[0]
-        pbs2.os0.makedirs(f_out)
+        pymake.os0.makedirs(f_out)
 
         cmd = ['ar', 'rcs', f_out] + list(self.library_project.files_object())
         
-        print(" ".join(cmd))
+        #print(" ".join(cmd))
 
         return subprocess.call(cmd)
 
@@ -242,7 +226,7 @@ class CExecutable(pymake.Rule):
 
     def build(self, f_out, f_in):
         f_out = f_out[0]
-        pbs2.os0.makedirs(f_out)
+        pymake.os0.makedirs(f_out)
         
         args = ['-g','-pg','-std=c++11']
 
@@ -283,7 +267,7 @@ class CProject(pymake.Rule):
         self.project = project
         self.name = name
         #print('config_file',config_file)
-        self.config_dir = os.path.dirname(config_file)
+        self.config_dir = os.path.dirname(os.path.abspath(config_file))
         self.source_dir = os.path.join(self.config_dir, 'source')
         
         self.build_dir = os.path.join(self.config_dir, 'build')
@@ -372,10 +356,18 @@ class Library(CProject):
 
     def __init__(self, project, name, config_file):
         super(Library, self).__init__(project, name, config_file)
+        
+        self.rule_doxygen = pbs2.rules.doc.Doxygen(self)
+        
+        self.doc_out_dir = os.path.join(self.build_dir, "html")
 
+    def f_in(self):
+        yield from super(Library, self).f_in()
+        yield self.rule_doxygen
+        
     def binary_file(self):
         return os.path.join(self.build_dir, 'lib' + self.name + '.a')
-   
+        
     def rules(self):
         """
         generator of rules
@@ -388,6 +380,8 @@ class Library(CProject):
         yield from l.rules()
 
         yield from self.rules_files_header_processed()
+
+        yield from self.rule_doxygen.rules()
 
 class Executable(CProject):
 
