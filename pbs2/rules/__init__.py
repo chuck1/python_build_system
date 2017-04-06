@@ -30,6 +30,8 @@ class CSourceFileDeps(pymake.Rule):
         args = ['-std=c++11']
         cmd = ['g++'] + args + ['-MM','-MF',self.file_deps,self.file_source] + include_args
 
+        pymake.os0.makedirs(os.path.dirname(self.file_deps))
+
         ret = subprocess.call(cmd)
 
         #self.read_file()
@@ -124,7 +126,7 @@ class CSourceFile(pymake.Rule):
 
     def build(self, f_out, f_in):
         f_out = f_out[0]
-        pymake.os0.makedirs(f_out)
+        pymake.os0.makedirs(os.path.dirname(f_out))
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
         define_args = ['-D' + d for d in self.library_project.defines()]

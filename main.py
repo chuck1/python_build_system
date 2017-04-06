@@ -17,7 +17,10 @@ def Make(args):
     m.rules += list(p.rules())
 
     try:
-        m.make('all')
+        if args.target:
+            m.make(args.target)
+        else:
+            m.make('all')
     except pymake.BuildError as ex:
         print(ex)
 
@@ -49,6 +52,7 @@ subparsers = parser.add_subparsers()
 
 parser_make = subparsers.add_parser('make')
 parser_make.add_argument('file')
+parser_make.add_argument('target', nargs='*')
 parser_make.set_defaults(func=Make)
 
 parser_find = subparsers.add_parser('find')

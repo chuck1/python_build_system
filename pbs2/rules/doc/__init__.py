@@ -17,8 +17,9 @@ class Doxyfile(pymake.Rule):
     def f_out(self):
         yield self._f_out
 
-    def f_in(self):
+    def f_in(self, makefile):
         yield self._f_in
+        yield self.library_project.config_file
 
     def build(self, f_out, f_in):
         print("build Doxyfile", self._f_out)
@@ -26,7 +27,7 @@ class Doxyfile(pymake.Rule):
         f_out = self._f_out
         f_in = self._f_in
         
-        pbs2.os0.makedirs(f_out)
+        pymake.os0.makedirs(os.path.dirname(f_out))
 
         env = jinja2.environment.Environment()
         template_dirs = [os.path.join(pbs2.BASE_DIR,'templates'), self.library_project.config_dir, '/', '.']
@@ -64,8 +65,10 @@ class Doxygen(pymake.Rule):
     def f_out(self):
         yield self.library_project.name + '-doc'
 
-    def f_in(self):
+    def f_in(self, makefile):
         yield self.doxyfile
+        yield from self.library_project.files_header()
+        yield from self.library_project.files_header_processed()
 
     def build(self, f_out, f_in):
         #pbs2.os0.makedirs(f_out)

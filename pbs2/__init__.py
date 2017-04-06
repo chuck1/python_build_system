@@ -34,7 +34,7 @@ class Project(object):
         """
         yield pymake.RuleStatic(['all'], [p.name + '-all' for p in self.parts], self.build)
 
-        yield pymake.RuleStatic(['doc'], [p.name + '-doc' for p in self.parts], self.build)
+        yield pymake.RuleStatic(['doc'], [p.name + '-doc' for p in self.parts if isinstance(p, Library)], self.build)
 
         for p in self.parts:
             for r in p.rules():
@@ -154,7 +154,7 @@ class CHeaderTemplateFile(pymake.Rule):
             os.chmod(self.file_out, stat.S_IRUSR | stat.S_IWUSR )
         except: pass
 
-        pymake.os0.makedirs(self.file_out)
+        pymake.os0.makedirs(os.path.dirname(self.file_out))
 
         try:
             with open(self.file_out, 'w') as f:
@@ -191,7 +191,7 @@ class CStaticLibrary(pymake.Rule):
         print('build CStaticLibrary', self.library_project.name)
 
         f_out = f_out[0]
-        pymake.os0.makedirs(f_out)
+        pymake.os0.makedirs(os.path.dirname(f_out))
 
         cmd = ['ar', 'rcs', f_out] + list(self.library_project.files_object())
         
@@ -228,7 +228,7 @@ class CExecutable(pymake.Rule):
 
     def build(self, f_out, f_in):
         f_out = f_out[0]
-        pymake.os0.makedirs(f_out)
+        pymake.os0.makedirs(os.path.dirname(f_out))
         
         args = ['-g','-pg','-std=c++11']
 
@@ -269,6 +269,7 @@ class CProject(pymake.Rule):
         self.project = project
         self.name = name
         #print('config_file',config_file)
+        self.config_file = config_file
         self.config_dir = os.path.dirname(os.path.abspath(config_file))
         self.source_dir = os.path.join(self.config_dir, 'source')
         
@@ -335,6 +336,13 @@ class CProject(pymake.Rule):
         for f in self.source_files():
             h,_ = os.path.splitext(os.path.relpath(f, self.source_dir))
             yield os.path.join(self.object_dir, h+'.o')
+
+    def files_header(self):
+        for root, dirs, files in os.walk(self.include_dir):
+            for f in files:
+                _,ext = os.path.splitext(f)
+                if ext == '.hpp':
+                    yield os.path.join(root,f)
 
     def files_header_unprocessed(self):
         for root, dirs, files in os.walk(self.include_dir):
