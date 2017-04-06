@@ -34,6 +34,8 @@ class Project(object):
         """
         yield pymake.RuleStatic(['all'], [p.name + '-all' for p in self.parts], self.build)
 
+        yield pymake.RuleStatic(['doc'], [p.name + '-doc' for p in self.parts], self.build)
+
         for p in self.parts:
             for r in p.rules():
                 yield r
@@ -62,7 +64,7 @@ class CHeaderTemplateFile(pymake.Rule):
         
         super(CHeaderTemplateFile, self).__init__(self.f_out, self.f_in, self.build)
 
-    def f_in(self):
+    def f_in(self, makefile):
         yield self.file_in
 
     def f_out(self):
@@ -178,7 +180,7 @@ class CStaticLibrary(pymake.Rule):
     def f_out(self):
         return [self.library_project.binary_file()]
 
-    def f_in(self):
+    def f_in(self, makefile):
         for s in self.library_project.files_object():
             yield s
 
@@ -218,7 +220,7 @@ class CExecutable(pymake.Rule):
     def f_out(self):
         yield self.library_project.binary_file()
 
-    def f_in(self):
+    def f_in(self, makefile):
         yield from self.library_project.files_object()
         yield from self.library_project.files_header_processed()
 
@@ -290,7 +292,7 @@ class CProject(pymake.Rule):
     def f_out(self):
         yield self.name+'-all'
     
-    def f_in(self):
+    def f_in(self, makefile):
         yield self.binary_file()
         yield from self.files_header_processed()
 
@@ -308,6 +310,9 @@ class CProject(pymake.Rule):
             yield from d.include_dirs()
 
     def defines(self):
+        for d in self.deps:
+           yield from d.defines()
+
         yield from self.l_defines
 
     def add_dep(self, name):
@@ -361,9 +366,8 @@ class Library(CProject):
         
         self.doc_out_dir = os.path.join(self.build_dir, "html")
 
-    def f_in(self):
-        yield from super(Library, self).f_in()
-        yield self.rule_doxygen
+    def f_in(self, makefile):
+        yield from super(Library, self).f_in(makefile)
         
     def binary_file(self):
         return os.path.join(self.build_dir, 'lib' + self.name + '.a')
@@ -382,7 +386,7 @@ class Library(CProject):
         yield from self.rules_files_header_processed()
 
         yield from self.rule_doxygen.rules()
-
+    
 class Executable(CProject):
 
     def __init__(self, project, name, config_file):

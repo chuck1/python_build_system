@@ -62,7 +62,7 @@ class Doxygen(pymake.Rule):
         self.doxyfile = os.path.join(self.library_project.build_dir, "Doxyfile")
     
     def f_out(self):
-        yield 'none'
+        yield self.library_project.name + '-doc'
 
     def f_in(self):
         yield self.doxyfile
