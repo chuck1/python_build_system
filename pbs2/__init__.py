@@ -4,6 +4,8 @@ import pymake
 import pymake.os0
 import subprocess
 import jinja2
+import termcolor
+
 import pbs2.rules
 import pbs2.rules.doc
 
@@ -60,12 +62,12 @@ class CHeaderTemplateFile(pymake.Rule):
         
         self.file_in  = os.path.join(self.library_project.include_dir, filename)
         self.file_out = os.path.join(self.library_project.process_include_dir, h+'.hpp')
-
         
         super(CHeaderTemplateFile, self).__init__(self.f_out, self.f_in, self.build)
 
     def f_in(self, makefile):
         yield self.file_in
+        yield self.library_project.config_file
 
     def f_out(self):
         yield self.file_out
@@ -82,8 +84,8 @@ class CHeaderTemplateFile(pymake.Rule):
         c['include_block_open']  = include_block_open
         c['include_block_close'] = include_block_close
 
-        c['logs_compile_level'] = s + "_LOGGER_COMPILE_LEVEL"
-        c['logs_compile_mode'] = s + "_LOGGER_COMPILE_MODE"
+        c['logs_level'] = s + "_LOGGER_LEVEL"
+        c['logs_mode'] = s + "_LOGGER_MODE"
 
         lst = filename_to_list(r)
 
@@ -169,6 +171,59 @@ class CHeaderTemplateFile(pymake.Rule):
         return 0
 
 """
+the shared library file
+"""
+class CSharedLibraryPython(pymake.Rule):
+    def __init__(self, library_project):
+        self.library_project = library_project
+ 
+        super(CSharedLibraryPython, self).__init__(self.f_out, self.f_in, self.build)
+        
+    def f_out(self):
+        return [self.library_project.binary_file()]
+
+    def f_in(self, makefile):
+        for s in self.library_project.files_object():
+            yield s
+
+        for s in self.library_project.files_header_processed():
+            yield s
+
+    def build(self, f_out, f_in):
+        print(termcolor.colored('Build CStaticLibrary '+self.library_project.name, 'green', attrs=['bold']))
+
+        #libhello.so: hello.cpp hello.h
+        #g++ hello.cpp -shared -o libhello.so -fPIC -std=c++0x ${inc_paths} ${libs}
+
+        f_out = f_out[0]
+        pymake.os0.makedirs(os.path.dirname(f_out))
+
+        #inc_paths = -I/usr/include/python3.5
+
+        libs = ['-lboost_python-py35','-lpython3.5m']
+
+        args_link = ['-l' + d.name for d in self.library_project.deps]
+
+        args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
+
+        objs = list(self.library_project.files_object())
+
+        cmd = ['g++'] + objs + ['-shared', '-o', f_out, '-fPIC', '-std=c++0x'] + args_library_dir + args_link + libs
+        
+        print(" ".join(cmd))
+
+        return subprocess.call(cmd)
+
+    def rules(self):
+        """
+        generator of rules
+        """
+        yield self
+
+        for s in self.library_project.rules_source_files():
+            yield s
+
+"""
 the actual library file
 """
 class CStaticLibrary(pymake.Rule):
@@ -230,6 +285,8 @@ class CExecutable(pymake.Rule):
         f_out = f_out[0]
         pymake.os0.makedirs(os.path.dirname(f_out))
         
+        print(termcolor.colored("Build executable " + self.library_project.name, 'red', attrs=['bold']))
+
         args = ['-g','-pg','-std=c++11']
 
         args_link = ['-l' + d.name for d in self.library_project.deps]
@@ -238,7 +295,7 @@ class CExecutable(pymake.Rule):
 
         cmd = ['g++'] + args + ['-o', f_out] + list(self.library_project.files_object()) + args_library_dir + args_link
         
-        print(" ".join(cmd))
+        #print(" ".join(cmd))
 
         return subprocess.call(cmd)
 
@@ -280,7 +337,6 @@ class CProject(pymake.Rule):
         self.include_dir = os.path.join(self.config_dir, 'include')
         self.process_include_dir = os.path.join(self.process_dir, 'include')
 
-
         self.deps = list()
         self.l_defines = list()
         self.l_include_dirs = list()
@@ -289,6 +345,9 @@ class CProject(pymake.Rule):
 
         #print('files header unprocessed',list(self.files_header_unprocessed()))
         #print('files header processed  ',list(self.files_header_processed()))
+
+    def get_c_source_args(self):
+        yield '-fPIC'
 
     def f_out(self):
         yield self.name+'-all'
@@ -363,6 +422,35 @@ class CProject(pymake.Rule):
     def rules_files_header_processed(self):
         for s in self.files_header_unprocessed():
             yield CHeaderTemplateFile(self, s)
+
+class LibraryPython(CProject):
+    def __init__(self, project, name, config_file):
+        super(LibraryPython, self).__init__(project, name, config_file)
+       
+        self.l_include_dirs.append("/usr/include/python3.5")
+
+    def get_c_source_args(self):
+        yield from super(LibraryPython, self).get_c_source_args()
+        #yield '-fPIC'
+
+    def f_in(self, makefile):
+        yield from super(LibraryPython, self).f_in(makefile)
+        
+    def binary_file(self):
+        return os.path.join(self.build_dir, 'lib' + self.name + '.so')
+        
+    def rules(self):
+        """
+        generator of rules
+        """
+        
+        yield self
+
+        l = CSharedLibraryPython(self)
+
+        yield from l.rules()
+
+        yield from self.rules_files_header_processed()
 
 
 class Library(CProject):

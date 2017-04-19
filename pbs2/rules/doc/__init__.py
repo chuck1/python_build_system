@@ -51,9 +51,6 @@ class Doxyfile(pymake.Rule):
         yield self
 
 
-
-
-
 class Doxygen(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
