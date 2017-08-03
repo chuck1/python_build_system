@@ -15,12 +15,14 @@ def Make(args):
     m = pymake.Makefile()
     
     m.rules += list(p.rules())
+    
+    for r in m.rules: print(repr(r))
 
     try:
         if args.target:
-            m.make(args.target)
+            m.make(target=args.target)
         else:
-            m.make('all')
+            m.make(target='all')
     except pymake.BuildError as ex:
         print(ex)
 

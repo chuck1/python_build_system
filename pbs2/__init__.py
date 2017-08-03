@@ -1,7 +1,6 @@
 import stat
 import os
 import pymake
-import pymake.os0
 import subprocess
 import jinja2
 import termcolor
@@ -22,29 +21,51 @@ def filename_to_list(s):
         lst.insert(0,t)
     return lst
 
+class _All(pymake.Rule):
+    def __init__(self, project):
+        self.project = project
+        pymake.Rule.__init__(self, 'all')
+    
+    def f_in(self, mc):
+        for p in self.project.parts:
+            yield p.name + '-all'
+
+    def build(self, mc, _, f_in):
+        self.project.build(mc, None, None)
+
+class _Doc(pymake.Rule):
+    def __init__(self, project):
+        self.project = project
+        pymake.Rule.__init__(self, 'doc')
+    
+    def f_in(self, mc):
+        for p in self.project.parts:
+            if isinstance(p, Library):
+                yield pymake.ReqFile(p.name + '-doc')
+
+    def build(self, mc, _, f_in):
+        self.project.build(mc, None, None)
+
 class Project(object):
     def __init__(self):
         self.parts = list()
+
     def execfile(self, filename):
-        """
-        execute a python script
-        """
         exec(open(filename).read(), {'self': self, '__file__': filename, '__dir__': os.path.dirname(filename)})
+
     def rules(self):
         """
         generator of rules
         """
-        yield pymake.RuleStatic(['all'], [p.name + '-all' for p in self.parts], self.build)
-
-        yield pymake.RuleStatic(['doc'], [p.name + '-doc' for p in self.parts if isinstance(p, Library)], self.build)
+        yield _All(self)
+        yield _Doc(self)
 
         for p in self.parts:
             for r in p.rules():
                 yield r
 
-    def build(self, f_out, f_in):
+    def build(self, mc, f_out, f_in):
         print('Project build out:', f_out, 'in:', f_in)
-        return 0
 
     def find_part(self, name):
         for p in self.parts:
@@ -61,16 +82,12 @@ class CHeaderTemplateFile(pymake.Rule):
         h,_ = os.path.splitext(filename)
         
         self.file_in  = os.path.join(self.library_project.include_dir, filename)
-        self.file_out = os.path.join(self.library_project.process_include_dir, h+'.hpp')
         
-        super(CHeaderTemplateFile, self).__init__(self.f_out, self.f_in, self.build)
+        super(CHeaderTemplateFile, self).__init__(os.path.join(self.library_project.process_include_dir, h+'.hpp'))
 
     def f_in(self, makefile):
-        yield self.file_in
-        yield self.library_project.config_file
-
-    def f_out(self):
-        yield self.file_out
+        yield pymake.ReqFile(self.file_in)
+        yield pymake.ReqFile(self.library_project.config_file)
 
     def get_context(self):
         c = dict()
@@ -103,8 +120,8 @@ class CHeaderTemplateFile(pymake.Rule):
         return c
 
 
-    def build(self, f_out, f_in):
-        print("CHeaderProcessedFile", self.file_out, self.file_in)
+    def build(self, mc, f_out, f_in):
+        print("CHeaderProcessedFile", self.f_out, self.file_in)
 
         #ith open(self.file_in, 'r') as f:
         #   temp = jinja2.Template(f.read())
@@ -156,19 +173,17 @@ class CHeaderTemplateFile(pymake.Rule):
             os.chmod(self.file_out, stat.S_IRUSR | stat.S_IWUSR )
         except: pass
 
-        pymake.os0.makedirs(os.path.dirname(self.file_out))
+        pymake.makedirs(os.path.dirname(self.f_out))
 
         try:
-            with open(self.file_out, 'w') as f:
+            with open(self.f_out, 'w') as f:
                 f.write(out)
         
-            os.chmod(self.file_out, stat.S_IRUSR)
+            os.chmod(self.f_out, stat.S_IRUSR)
         except Exception as e:
             print(e)
 
-        st = os.stat(self.file_out)
-
-        return 0
+        st = os.stat(self.f_out)
 
 """
 the shared library file
@@ -177,26 +192,23 @@ class CSharedLibraryPython(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        super(CSharedLibraryPython, self).__init__(self.f_out, self.f_in, self.build)
+        super(CSharedLibraryPython, self).__init__(self.library_project.binary_file())
         
-    def f_out(self):
-        return [self.library_project.binary_file()]
-
     def f_in(self, makefile):
         for s in self.library_project.files_object():
-            yield s
+            yield pymake.ReqFile(s)
 
         for s in self.library_project.files_header_processed():
-            yield s
+            yield pymake.ReqFile(s)
 
-    def build(self, f_out, f_in):
+    def build(self, mc, _, f_in):
         print(termcolor.colored('Build CStaticLibrary '+self.library_project.name, 'green', attrs=['bold']))
 
         #libhello.so: hello.cpp hello.h
         #g++ hello.cpp -shared -o libhello.so -fPIC -std=c++0x ${inc_paths} ${libs}
 
         f_out = f_out[0]
-        pymake.os0.makedirs(os.path.dirname(f_out))
+        pymake.makedirs(os.path.dirname(f_out))
 
         #inc_paths = -I/usr/include/python3.5
 
@@ -230,25 +242,21 @@ class CStaticLibrary(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        super(CStaticLibrary, self).__init__(self.f_out, self.f_in, self.build)
+        super(CStaticLibrary, self).__init__(self.library_project.binary_file())
         
-    def f_out(self):
-        return [self.library_project.binary_file()]
-
     def f_in(self, makefile):
         for s in self.library_project.files_object():
-            yield s
+            yield pymake.ReqFile(s)
 
         for s in self.library_project.files_header_processed():
-            yield s
+            yield pymake.ReqFile(s)
 
-    def build(self, f_out, f_in):
+    def build(self, mc, _, f_in):
         print('build CStaticLibrary', self.library_project.name)
 
-        f_out = f_out[0]
-        pymake.os0.makedirs(os.path.dirname(f_out))
+        pymake.makedirs(os.path.dirname(self.f_out))
 
-        cmd = ['ar', 'rcs', f_out] + list(self.library_project.files_object())
+        cmd = ['ar', 'rcs', self.f_out] + list(self.library_project.files_object())
         
         #print(" ".join(cmd))
 
@@ -270,20 +278,20 @@ class CExecutable(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        super(CExecutable, self).__init__(self.f_out, self.f_in, self.build)
+        super(CExecutable, self).__init__(self.library_project.binary_file())
         
-    def f_out(self):
-        yield self.library_project.binary_file()
-
     def f_in(self, makefile):
-        yield from self.library_project.files_object()
-        yield from self.library_project.files_header_processed()
+        for f in self.library_project.files_object():
+            yield pymake.ReqFile(f)
 
-        yield from [d.binary_file() for d in self.library_project.deps]
+        for f in self.library_project.files_header_processed():
+            yield pymake.ReqFile(f)
 
-    def build(self, f_out, f_in):
-        f_out = f_out[0]
-        pymake.os0.makedirs(os.path.dirname(f_out))
+        for d in self.library_project.deps:
+            yield pymake.ReqFile(d.binary_file())
+
+    def build(self, mc, _, f_in):
+        pymake.makedirs(os.path.dirname(self.f_out))
         
         print(termcolor.colored("Build executable " + self.library_project.name, 'red', attrs=['bold']))
 
@@ -293,7 +301,7 @@ class CExecutable(pymake.Rule):
 
         args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
 
-        cmd = ['g++'] + args + ['-o', f_out] + list(self.library_project.files_object()) + args_library_dir + args_link
+        cmd = ['g++'] + args + ['-o', self.f_out] + list(self.library_project.files_object()) + args_library_dir + args_link
         
         #print(" ".join(cmd))
 
@@ -341,7 +349,7 @@ class CProject(pymake.Rule):
         self.l_defines = list()
         self.l_include_dirs = list()
 
-        super(CProject, self).__init__(self.f_out, self.f_in, self.build)
+        super(CProject, self).__init__(self.name+'-all')
 
         #print('files header unprocessed',list(self.files_header_unprocessed()))
         #print('files header processed  ',list(self.files_header_processed()))
@@ -349,14 +357,11 @@ class CProject(pymake.Rule):
     def get_c_source_args(self):
         yield '-fPIC'
 
-    def f_out(self):
-        yield self.name+'-all'
-    
     def f_in(self, makefile):
-        yield self.binary_file()
+        yield pymake.ReqFile(self.binary_file())
         yield from self.files_header_processed()
 
-    def build(self, f_out, f_in):
+    def build(self, mc, f_out, f_in):
         #print('Library build out:', f_out, 'in:', f_in)
         print('CProject build name:', self.name, 'out:', f_out)
         return 0

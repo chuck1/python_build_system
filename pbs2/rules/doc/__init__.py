@@ -8,7 +8,7 @@ class Doxyfile(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        super(Doxyfile, self).__init__(self.f_out, self.f_in, self.build)
+        #super(Doxyfile, self).__init__(self.f_out, self.f_in, self.build)
         
         self._f_out = os.path.join(self.library_project.build_dir, "Doxyfile")
 
@@ -55,7 +55,7 @@ class Doxygen(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        super(Doxygen, self).__init__(self.f_out, self.f_in, self.build)
+        #super(Doxygen, self).__init__(self.f_out, self.f_in, self.build)
         
         self.doxyfile = os.path.join(self.library_project.build_dir, "Doxyfile")
     
