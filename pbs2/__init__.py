@@ -76,12 +76,11 @@ class Project(object):
 class CHeaderTemplateFile(pymake.Rule):
     def __init__(self, library_project, filename):
         self.library_project = library_project
+        self.file_in  = filename
 
-        filename = os.path.relpath(filename, library_project.include_dir)
+        filename_rel = os.path.relpath(filename, library_project.include_dir)
 
-        h,_ = os.path.splitext(filename)
-        
-        self.file_in  = os.path.join(self.library_project.include_dir, filename)
+        h,_ = os.path.splitext(filename_rel)
         
         super(CHeaderTemplateFile, self).__init__(os.path.join(self.library_project.process_include_dir, h+'.hpp'))
 
@@ -118,7 +117,6 @@ class CHeaderTemplateFile(pymake.Rule):
         c['header_close'] = namespace_close + "\n" + include_block_close
 
         return c
-
 
     def build(self, mc, f_out, f_in):
         print("CHeaderProcessedFile", self.f_out, self.file_in)
@@ -170,18 +168,24 @@ class CHeaderTemplateFile(pymake.Rule):
         out = preamble + "\n" + temp.render(c)
         
         try:
-            os.chmod(self.file_out, stat.S_IRUSR | stat.S_IWUSR )
-        except: pass
+            os.chmod(self.f_out, stat.S_IRUSR | stat.S_IWUSR )
+        except Exception as e:
+            print("error in chmod", e)
 
         pymake.makedirs(os.path.dirname(self.f_out))
 
         try:
             with open(self.f_out, 'w') as f:
                 f.write(out)
-        
+        except Exception as e:
+            print("error in write", e)
+            raise
+
+        try:
             os.chmod(self.f_out, stat.S_IRUSR)
         except Exception as e:
-            print(e)
+            print("error in chmod", e)
+            raise
 
         st = os.stat(self.f_out)
 

@@ -105,7 +105,8 @@ class CSourceFile(pymake.Rule):
         self.rule_deps = CSourceFileDeps(library_project, filename)
 
         super(CSourceFile, self).__init__(self.file_object)
-        
+    
+
     def f_in(self, makefile):
         yield pymake.ReqFile(self.file_source)
         yield self.rule_deps
@@ -114,7 +115,6 @@ class CSourceFile(pymake.Rule):
         self.rule_deps.make(makefile)
         for f in self.rule_deps.read_file():
             yield pymake.ReqFile(f)
-
 
         for f in self.library_project.files_header_processed():
             yield pymake.ReqFile(f)
@@ -143,6 +143,9 @@ class CSourceFile(pymake.Rule):
             print('include args:')
             for s in include_args:
                 print(s)
+            print('files header processed')
+            for f in self.library_project.files_header_processed():
+                print(f)
         
         return ret
 
