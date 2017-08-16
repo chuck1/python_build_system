@@ -8,26 +8,19 @@ class Doxyfile(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        #super(Doxyfile, self).__init__(self.f_out, self.f_in, self.build)
+        super(Doxyfile, self).__init__(os.path.join(self.library_project.build_dir, "Doxyfile"))
         
-        self._f_out = os.path.join(self.library_project.build_dir, "Doxyfile")
-
-        self._f_in = os.path.join(pbs2.BASE_DIR, 'templates', 'Doxyfile')
-
-    def f_out(self):
-        yield self._f_out
-
     def f_in(self, makefile):
-        yield self._f_in
-        yield self.library_project.config_file
+        yield pymake.ReqFile(os.path.join(pbs2.BASE_DIR, 'templates', 'Doxyfile'))
+        yield pymake.ReqFile(self.library_project.config_file)
 
-    def build(self, f_out, f_in):
-        print("build Doxyfile", self._f_out)
+    def build(self, mc, _, f_in):
+        print("build Doxyfile", self.f_out)
         
-        f_out = self._f_out
-        f_in = self._f_in
+        f_out = self.f_out
+        f_in = f_in[0].fn
         
-        pymake.os0.makedirs(os.path.dirname(f_out))
+        pymake.makedirs(os.path.dirname(f_out))
 
         env = jinja2.environment.Environment()
         template_dirs = [os.path.join(pbs2.BASE_DIR,'templates'), self.library_project.config_dir, '/', '.']
@@ -55,21 +48,20 @@ class Doxygen(pymake.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        #super(Doxygen, self).__init__(self.f_out, self.f_in, self.build)
+        super(Doxygen, self).__init__(self.library_project.name + '-doc')
         
         self.doxyfile = os.path.join(self.library_project.build_dir, "Doxyfile")
     
-    def f_out(self):
-        yield self.library_project.name + '-doc'
-
     def f_in(self, makefile):
-        yield self.doxyfile
-        yield from self.library_project.files_header()
-        yield from self.library_project.files_header_processed()
+        yield pymake.ReqFile(self.doxyfile)
 
-    def build(self, f_out, f_in):
-        #pbs2.os0.makedirs(f_out)
+        for f in self.library_project.files_header():
+            yield pymake.ReqFile(f)
 
+        for f in self.library_project.files_header_processed():
+            yield pymake.ReqFile(f)
+
+    def build(self, mc, _, f_in):
         print("build Doxygen", self.library_project.name)
 
         cmd = ['doxygen', self.doxyfile]

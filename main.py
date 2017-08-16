@@ -16,8 +16,6 @@ def Make(args):
     
     m.rules += list(p.rules())
     
-    for r in m.rules: print(repr(r))
-
     try:
         if args.target:
             m.make(target=args.target)
@@ -61,7 +59,6 @@ parser_find = subparsers.add_parser('find')
 parser_find.add_argument('pattern')
 parser_find.add_argument('--move')
 parser_find.set_defaults(func=Find)
-
 
 args = parser.parse_args()
 
