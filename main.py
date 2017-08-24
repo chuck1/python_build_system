@@ -60,6 +60,11 @@ parser_find.add_argument('pattern')
 parser_find.add_argument('--move')
 parser_find.set_defaults(func=Find)
 
+def help_(_):
+    parser.print_help()
+
+parser.set_defaults(func=help_)
+
 args = parser.parse_args()
 
 args.func(args)
