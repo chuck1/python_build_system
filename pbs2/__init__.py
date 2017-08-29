@@ -249,7 +249,9 @@ class CStaticLibrary(pymake.Rule):
         super(CStaticLibrary, self).__init__(self.library_project.binary_file())
         
     def f_in(self, makefile):
+        print('object files')
         for s in self.library_project.files_object():
+            print(s)
             yield pymake.ReqFile(s)
 
         for s in self.library_project.files_header_processed():
@@ -393,10 +395,13 @@ class CProject(pymake.Rule):
         self.deps.append(self.project.find_part(name))
 
     def source_files(self):
+        #print('source files. walking', self.source_dir)
         for root, dirs, files in os.walk(self.source_dir):
+            #print(root, dirs, files)
             for f in files:
                 _,ext = os.path.splitext(f)
                 if ext == '.cpp':
+                    #print(f)
                     #yield os.path.relpath(os.path.join(root,f), self.source_dir)
                     yield os.path.join(root,f)
 
