@@ -249,9 +249,9 @@ class CStaticLibrary(pymake.Rule):
         super(CStaticLibrary, self).__init__(self.library_project.binary_file())
         
     def f_in(self, makefile):
-        print('object files')
+        #print('object files')
         for s in self.library_project.files_object():
-            print(s)
+            #print(s)
             yield pymake.ReqFile(s)
 
         for s in self.library_project.files_header_processed():
