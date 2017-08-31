@@ -105,19 +105,22 @@ class CSourceFile(pymake.Rule):
         self.rule_deps = CSourceFileDeps(library_project, filename)
 
         super(CSourceFile, self).__init__(self.file_object)
-    
 
-    def f_in(self, makefile):
+    def f_in(self, mc):
         yield pymake.ReqFile(self.file_source)
         yield self.rule_deps
         
-        # solving the issue of to calculate header deps
-        self.rule_deps.make(makefile)
+        # depends file depends on the source file
+        self.rule_deps.make(mc)
+
+        #print("depends")
         for f in self.rule_deps.read_file():
+            #print("    {}".format(f))
             yield pymake.ReqFile(f)
 
-        for f in self.library_project.files_header_processed():
-            yield pymake.ReqFile(f)
+        # should be covered by depends
+        #for f in self.library_project.files_header_processed():
+        #    yield pymake.ReqFile(f)
 
         for f in self.library_project.deps:
             yield f
