@@ -4,6 +4,8 @@ import os
 import re
 import termcolor
 
+import crayons
+
 class CSourceFileDeps(pymake.Rule):
     def __init__(self, library_project, filename):
 
@@ -17,11 +19,16 @@ class CSourceFileDeps(pymake.Rule):
 
         super(CSourceFileDeps, self).__init__(self.file_deps)
 
-    def f_in(self, makefile):
+    def f_in(self, mc):
         yield pymake.ReqFile(self.file_source)
+        
+        # processed header files must be generated before deps command can run properly
+        for f in self.library_project.files_header_processed():
+            #yield pymake.ReqFile(f)
+            mc.make(f)
 
     def build(self, mc, _, f_in):
-        print('CSourceFileDeps', self.file_deps)
+        print(crayons.yellow('CSourceFileDeps {}'.format(self.file_deps), bold = True))
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
 
@@ -32,9 +39,10 @@ class CSourceFileDeps(pymake.Rule):
 
         ret = subprocess.call(cmd)
 
+        #print(' '.join(cmd))
+
         #self.read_file()
 
-        #return 1
         return ret
 
     def read_file(self):
@@ -45,12 +53,6 @@ class CSourceFileDeps(pymake.Rule):
             s = f.read()
         
         m = pat.match(s)
-        #print(len(m.groups()))
-        #print(repr(m.group(1)))
-        #print(repr(m.group(2)))
-        #print(m.end(0))
-
-        
 
         if not m:
             #vert_graph_all.o: \\\n /home/crymal/git/graph/source/graph/iterator/vert_graph_all.cpp \\\n
@@ -80,16 +82,11 @@ class CSourceFileDeps(pymake.Rule):
         m = pat.match(s)
 
         while m:
-            #print(repr(m.group(1)))
             yield m.group(1)
        
-            #print(m.end(0))
-
             s = s[m.end(0):]
 
             m = pat.match(s)
-
-        
 
 class CSourceFile(pymake.Rule):
     def __init__(self, library_project, filename):
@@ -108,19 +105,13 @@ class CSourceFile(pymake.Rule):
 
     def f_in(self, mc):
         yield pymake.ReqFile(self.file_source)
+
         yield self.rule_deps
         
-        # depends file depends on the source file
-        self.rule_deps.make(mc)
-
-        #print("depends")
+        #print("depends for {}".format(self.file_source))
         for f in self.rule_deps.read_file():
             #print("    {}".format(f))
             yield pymake.ReqFile(f)
-
-        # should be covered by depends
-        #for f in self.library_project.files_header_processed():
-        #    yield pymake.ReqFile(f)
 
         for f in self.library_project.deps:
             yield f
