@@ -362,6 +362,8 @@ class CProject(pymake.Rule):
 
     def get_c_source_args(self):
         yield '-fPIC'
+        yield '-Wall'
+        yield '-Werror'
 
     def f_in(self, makefile):
         yield pymake.ReqFile(self.binary_file())
