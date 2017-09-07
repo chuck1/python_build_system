@@ -211,7 +211,8 @@ class CSharedLibraryPython(pymake.Rule):
         #libhello.so: hello.cpp hello.h
         #g++ hello.cpp -shared -o libhello.so -fPIC -std=c++0x ${inc_paths} ${libs}
 
-        f_out = f_out[0]
+        f_out = self.f_out
+
         pymake.makedirs(os.path.dirname(f_out))
 
         #inc_paths = -I/usr/include/python3.5
