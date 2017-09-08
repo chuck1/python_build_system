@@ -199,6 +199,9 @@ class CSharedLibraryPython(pymake.Rule):
         super(CSharedLibraryPython, self).__init__(self.library_project.binary_file())
         
     def f_in(self, makefile):
+        for d in self.library_project.deps:
+            yield pymake.ReqFile(d.binary_file())
+
         for s in self.library_project.files_object():
             yield pymake.ReqFile(s)
 
@@ -217,7 +220,8 @@ class CSharedLibraryPython(pymake.Rule):
 
         #inc_paths = -I/usr/include/python3.5
 
-        libs = ['-lboost_python-py35','-lpython3.5m']
+        #libs = ['-lboost_python-py35','-lpython3.5m']
+        libs = ['-lboost_python-py27','-lpython2.7']
 
         args_link = ['-l' + d.name for d in self.library_project.deps]
 
@@ -280,8 +284,15 @@ class CStaticLibrary(pymake.Rule):
 
 """
 the actual executable file
+
+add extra build args like so:
+
+    e.args.append("-an_arg")
+
 """
 class CExecutable(pymake.Rule):
+    args = []
+
     def __init__(self, library_project):
         self.library_project = library_project
  
@@ -308,7 +319,7 @@ class CExecutable(pymake.Rule):
 
         args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
 
-        cmd = ['g++'] + args + ['-o', self.f_out] + list(self.library_project.files_object()) + args_library_dir + args_link
+        cmd = ['g++'] + args + ['-o', self.f_out] + list(self.library_project.files_object()) + args_library_dir + args_link + self.library_project.args
         
         #print(" ".join(cmd))
 
@@ -444,7 +455,8 @@ class LibraryPython(CProject):
     def __init__(self, project, name, config_file):
         super(LibraryPython, self).__init__(project, name, config_file)
        
-        self.l_include_dirs.append("/usr/include/python3.5")
+        #self.l_include_dirs.append("/usr/include/python3.5")
+        self.l_include_dirs.append("/usr/include/python2.7")
 
     def get_c_source_args(self):
         yield from super(LibraryPython, self).get_c_source_args()
@@ -501,7 +513,7 @@ class Library(CProject):
         yield from self.rule_doxygen.rules()
     
 class Executable(CProject):
-
+    args = []
     def __init__(self, project, name, config_file):
         super(Executable, self).__init__(project, name, config_file)
  

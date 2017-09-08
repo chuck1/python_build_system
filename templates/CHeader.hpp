@@ -8,5 +8,7 @@
 
 {{ namespace_close }}
 
+{% block footer %}{% endblock %}
+
 {{ include_block_close }}
 
