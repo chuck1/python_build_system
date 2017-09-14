@@ -3,201 +3,72 @@ import os
 import pymake
 import subprocess
 import jinja2
-import termcolor
 
 import crayons
 
 import pbs2.rules
 import pbs2.rules.doc
 
-from pbs2.shared.binary import CSharedLibraryPython
+"""
+the shared library binary file
+"""
+class CSharedLibraryPython(pymake.Rule):
+    def __init__(self, library_project):
+        self.library_project = library_project
+ 
+        super(CSharedLibraryPython, self).__init__(self.library_project.binary_file())
+        
+    def f_in(self, makefile):
+        yield pymake.ReqFile(__file__)
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+        for d in self.library_project.deps:
+            yield pymake.ReqFile(d.binary_file())
 
-def filename_to_list(s):
-    lst = []
-    h,filename = os.path.split(s)
-    while True:
-        h,t = os.path.split(h)
-        #rint 'h',repr(h),'t', repr(t)
-        if t == '':
-            break
-        lst.insert(0,t)
-    return lst
+        for s in self.library_project.files_object():
+            yield pymake.ReqFile(s)
 
-class _All(pymake.Rule):
-    def __init__(self, project):
-        self.project = project
-        pymake.Rule.__init__(self, 'all')
-    
-    def f_in(self, mc):
-        for p in self.project.parts:
-            yield p.name + '-all'
+        for s in self.library_project.files_header_processed():
+            yield pymake.ReqFile(s)
 
     def build(self, mc, _, f_in):
-        self.project.build(mc, None, None)
+        print(crayons.green('Build CStaticLibrary ' + self.library_project.name, bold = True))
 
-class _Doc(pymake.Rule):
-    def __init__(self, project):
-        self.project = project
-        pymake.Rule.__init__(self, 'doc')
-    
-    def f_in(self, mc):
-        for p in self.project.parts:
-            if isinstance(p, Library):
-                yield pymake.ReqFile(p.name + '-doc')
+        #libhello.so: hello.cpp hello.h
+        #g++ hello.cpp -shared -o libhello.so -fPIC -std=c++0x ${inc_paths} ${libs}
 
-    def build(self, mc, _, f_in):
-        self.project.build(mc, None, None)
+        f_out = self.f_out
 
-class Project(object):
-    def __init__(self):
-        self.parts = list()
+        pymake.makedirs(os.path.dirname(f_out))
 
-    def execfile(self, filename):
-        with open(filename) as f:
-            s = f.read()
-        try:
-            exec(s, {'self': self, '__file__': filename, '__dir__': os.path.dirname(filename)})
-        except Exception as e:
-            print("error running {}: {}".format(repr(filename), repr(e)))
-            raise
+        #inc_paths = -I/usr/include/python3.5
+
+        #libs = ['-lboost_python-py35','-lpython3.5m']
+        libs = ['-lboost_python-py27','-lpython2.7']
+
+
+        args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
+        
+        args_link = ['-l' + d.name for d in self.library_project.deps]
+        
+        # whole archive
+        args_link_whole = ["-Wl,-whole-archive"] + args_link + ["-Wl,-no-whole-archive"]
+
+        objs = list(self.library_project.files_object())
+
+        cmd = ['g++'] + objs + ['-shared', '-o', f_out, '-fPIC', '-std=c++0x'] + args_library_dir + args_link_whole + libs
+        
+        print(" ".join(cmd))
+
+        return subprocess.call(cmd)
 
     def rules(self):
         """
         generator of rules
         """
-        yield _All(self)
-        yield _Doc(self)
+        yield self
 
-        for p in self.parts:
-            for r in p.rules():
-                yield r
-
-    def build(self, mc, f_out, f_in):
-        print('Project build out:', f_out, 'in:', f_in)
-
-    def find_part(self, name):
-        for p in self.parts:
-            if p.name == name:
-                return p
-        raise Exception('part not found: '+name)
-
-class CHeaderTemplateFile(pymake.Rule):
-    def __init__(self, library_project, filename):
-        self.library_project = library_project
-        self.file_in  = filename
-
-        filename_rel = os.path.relpath(filename, library_project.include_dir)
-
-        h,_ = os.path.splitext(filename_rel)
-        
-        super(CHeaderTemplateFile, self).__init__(os.path.join(self.library_project.process_include_dir, h+'.hpp'))
-
-    def f_in(self, makefile):
-        yield pymake.ReqFile(self.file_in)
-        yield pymake.ReqFile(self.library_project.config_file)
-
-    def get_context(self):
-        c = dict()
-
-        r = os.path.relpath(self.file_in, self.library_project.include_dir)
-        s = r.replace('/','_').replace('.','_').upper()
-
-        include_block_open  = "#ifndef {0}\n#define {0}".format(s)
-        include_block_close = "#endif"
-
-        c['include_block_open']  = include_block_open
-        c['include_block_close'] = include_block_close
-
-        c['logs_level'] = s + "_LOGGER_LEVEL"
-        c['logs_mode'] = s + "_LOGGER_MODE"
-
-        lst = filename_to_list(r)
-
-        lst2 = ["namespace {} {{".format(l) for l in lst]
-
-        namespace_open  = "\n".join(lst2)
-        namespace_close = "}"*len(lst)
-
-        c['namespace_open']  = namespace_open
-        c['namespace_close'] = namespace_close
-       
-        c['header_open']  = include_block_open  + "\n" + namespace_open
-        c['header_close'] = namespace_close + "\n" + include_block_close
-
-        return c
-
-    def build(self, mc, f_out, f_in):
-        print("CHeaderProcessedFile", self.f_out, self.file_in)
-
-        #ith open(self.file_in, 'r') as f:
-        #   temp = jinja2.Template(f.read())
-
-        env = jinja2.environment.Environment()
-        template_dirs = [os.path.join(BASE_DIR,'templates'), self.library_project.config_dir, '/', '.']
-        #print('template_dirs',template_dirs)
-        env.loader = jinja2.FileSystemLoader(template_dirs)
-        
-        temp = env.get_template(self.file_in)
-
-        # making special macros
-
-        r = os.path.relpath(self.file_in, self.library_project.include_dir)
-        
-        c = self.get_context()
-
-        # ns and class names
-        
-        h,filename = os.path.split(r)
-
-        lst = filename_to_list(r)
-
-        ns_name = "::".join(lst)
-        
-        filename2,_ = os.path.splitext(filename)
-        class_name,_ = os.path.splitext(filename2)
-        
-        full_name = ns_name + "::" + class_name
-        
-        typedef_verb = "typedef gal::verb::Verbosity<{}> VERB;".format(full_name)
-
-        c['type_this'] = full_name
-
-        c['typedef_verb'] = typedef_verb
-        
-        c['setup_verb'] = "\n".join([
-                typedef_verb,
-                "using VERB::init_verb;",
-                "using VERB::printv;"])
-        
-        # render and write
-    
-        preamble = "/*\n * DO NOT EDIT THIS FILE\n *\n * {}\n */\n".format(self.file_in)
-
-        out = preamble + "\n" + temp.render(c)
-        
-        try:
-            os.chmod(self.f_out, stat.S_IRUSR | stat.S_IWUSR )
-        except Exception as e:
-            print("error in chmod", e)
-
-        pymake.makedirs(os.path.dirname(self.f_out))
-
-        try:
-            with open(self.f_out, 'w') as f:
-                f.write(out)
-        except Exception as e:
-            print("error in write", e)
-            raise
-
-        try:
-            os.chmod(self.f_out, stat.S_IRUSR)
-        except Exception as e:
-            print("error in chmod", e)
-            raise
-
-        st = os.stat(self.f_out)
+        for s in self.library_project.rules_source_files():
+            yield s
 
 """
 the actual library file
@@ -346,7 +217,6 @@ class CProject(pymake.Rule):
         yield from self.args
 
     def f_in(self, makefile):
-        yield pymake.ReqFile(__file__)
         yield pymake.ReqFile(self.binary_file())
         yield from self.files_header_processed()
 
@@ -432,7 +302,6 @@ class LibraryPython(CProject):
         #yield '-fPIC'
 
     def f_in(self, makefile):
-
         yield from super(LibraryPython, self).f_in(makefile)
         
     def binary_file(self):
@@ -451,6 +320,7 @@ class LibraryPython(CProject):
 
         yield from self.rules_files_header_processed()
 
+
 class Library(CProject):
 
     def __init__(self, project, name, config_file):
@@ -461,7 +331,6 @@ class Library(CProject):
         self.doc_out_dir = os.path.join(self.build_dir, "html")
 
     def f_in(self, makefile):
-        yield pymake.ReqFile(__file__)
         yield from super(Library, self).f_in(makefile)
         
     def binary_file(self):
