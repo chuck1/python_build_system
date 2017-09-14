@@ -5,6 +5,8 @@ import subprocess
 import jinja2
 import termcolor
 
+import crayons
+
 import pbs2.rules
 import pbs2.rules.doc
 
@@ -51,7 +53,13 @@ class Project(object):
         self.parts = list()
 
     def execfile(self, filename):
-        exec(open(filename).read(), {'self': self, '__file__': filename, '__dir__': os.path.dirname(filename)})
+        with open(filename) as f:
+            s = f.read()
+        try:
+            exec(s, {'self': self, '__file__': filename, '__dir__': os.path.dirname(filename)})
+        except Exception as e:
+            print("error running {}: {}".format(repr(filename), repr(e)))
+            raise
 
     def rules(self):
         """
@@ -299,6 +307,8 @@ class CExecutable(pymake.Rule):
         super(CExecutable, self).__init__(self.library_project.binary_file())
         
     def f_in(self, makefile):
+        yield pymake.ReqFile(self.library_project.config_file)
+
         for f in self.library_project.files_object():
             yield pymake.ReqFile(f)
 
@@ -310,10 +320,12 @@ class CExecutable(pymake.Rule):
 
     def build(self, mc, _, f_in):
         pymake.makedirs(os.path.dirname(self.f_out))
-        
-        print(termcolor.colored("Build executable " + self.library_project.name, 'red', attrs=['bold']))
 
-        args = ['-g','-pg','-std=c++11']
+        args = ['-g','-pg','-std=c++11'] + self.library_project.args
+        
+        print(crayons.red("Build executable " + self.library_project.name, bold = True))
+        print("    args: {}".format(" ".join(args)))
+
 
         args_link = ['-l' + d.name for d in self.library_project.deps]
 
@@ -367,6 +379,9 @@ class CProject(pymake.Rule):
         self.l_defines = list()
         self.l_include_dirs = list()
 
+        # custom args
+        self.args = []
+
         super(CProject, self).__init__(self.name+'-all')
 
         #print('files header unprocessed',list(self.files_header_unprocessed()))
@@ -376,6 +391,7 @@ class CProject(pymake.Rule):
         yield '-fPIC'
         yield '-Wall'
         yield '-Werror'
+        yield from self.args
 
     def f_in(self, makefile):
         yield pymake.ReqFile(self.binary_file())

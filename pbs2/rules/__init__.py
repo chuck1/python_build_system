@@ -104,8 +104,10 @@ class CSourceFile(pymake.Rule):
         super(CSourceFile, self).__init__(self.file_object)
 
     def f_in(self, mc):
+        yield pymake.ReqFile(__file__)
+        yield pymake.ReqFile(self.library_project.config_file)
         yield pymake.ReqFile(self.file_source)
-
+        
         yield self.rule_deps
         
         #print("depends for {}".format(self.file_source))
@@ -124,11 +126,12 @@ class CSourceFile(pymake.Rule):
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
         define_args = ['-D' + d for d in self.library_project.defines()]
         
-        args = ['-g','-pg','-c','-std=c++11'] + list(a for a in self.library_project.get_c_source_args() if a is not None)
+        args = ['-g', '-pg','-c','-std=c++11'] + list(a for a in self.library_project.get_c_source_args() if a is not None)
 
         cmd = ['g++'] + args + [self.file_source, '-o', self.file_object] + include_args + define_args
         
-        print(termcolor.colored("CSourceFile {}".format(self.file_object), 'yellow', attrs=['bold']))
+        print(crayons.yellow("CSourceFile {}".format(self.file_object), bold = True))
+        print(crayons.yellow("    args: {}".format(" ".join(args)), bold = True))
         #print(" ".join(cmd))
 
         ret = subprocess.call(cmd)
