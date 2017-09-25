@@ -1,0 +1,8 @@
+{% extends "CHeader.hpp" %}
+{% block header %}
+{% endblock %}
+{% block body %}
+class 
+{
+};
+{% endblock %}

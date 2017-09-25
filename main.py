@@ -45,6 +45,18 @@ def Find(args):
                     print('move', repr(dst))
                     shutil.move(f, dst)
 
+def new_class(args):
+
+    f = args.file
+    d = os.path.dirname(f)
+
+    pymake.makedirs(d)
+
+    src = os.path.join(pbs2.BASE_DIR, "templates2", "CHeader.hpp_in")
+    dst = f
+
+    shutil.copyfile(src, dst)
+
 #######################################
 
 parser = argparse.ArgumentParser()
@@ -59,6 +71,10 @@ parser_find = subparsers.add_parser('find')
 parser_find.add_argument('pattern')
 parser_find.add_argument('--move')
 parser_find.set_defaults(func=Find)
+
+parser_make = subparsers.add_parser('new_class')
+parser_make.add_argument('file')
+parser_make.set_defaults(func=new_class)
 
 def help_(_):
     parser.print_help()
