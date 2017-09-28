@@ -250,6 +250,7 @@ class CExecutable(pymake.Rule):
 
     def __init__(self, library_project):
         self.library_project = library_project
+        self.p = library_project
  
         super(CExecutable, self).__init__(self.library_project.binary_file())
         
@@ -272,7 +273,6 @@ class CExecutable(pymake.Rule):
         
         print(crayons.red("Build executable " + self.library_project.name, bold = True))
         print("    args: {}".format(" ".join(args)))
-
 
         args_link = ['-l' + d.name for d in self.library_project.deps]
 
@@ -330,6 +330,8 @@ class CProject(pymake.Rule):
         self.deps = list()
         self.l_defines = list()
         self.l_include_dirs = list()
+        
+        self._test = False
 
         # custom args
         self.args = []
@@ -350,9 +352,13 @@ class CProject(pymake.Rule):
         yield pymake.ReqFile(self.binary_file())
         yield from self.files_header_processed()
 
-    def build(self, mc, f_out, f_in):
+        print(self, 'test =', self._test)
+        if self._test:
+            yield pymake.ReqFile(os.path.join(self.build_dir, 'test.txt'))
+
+    def build(self, mc, _, f_in):
         #print('Library build out:', f_out, 'in:', f_in)
-        print('CProject build name:', self.name, 'out:', f_out)
+        print('CProject build name:', self.name, 'out:', self.f_out)
         return 0
 
     def include_dirs(self):
@@ -481,9 +487,34 @@ class Library(CProject):
         yield from self.rules_files_header_processed()
 
         yield from self.rule_doxygen.rules()
+
+class TestExecutable(pymake.Rule):
+    def __init__(self, ex):
+        self.ex = ex
+ 
+        f_out = os.path.join(self.ex.p.build_dir, "test.txt")
+
+        super(TestExecutable, self).__init__(f_out)
     
+    def f_in(self, mc):
+        yield self.ex
+
+    def build(self, mc, _, f_in):
+        print(crayons.green('test {}'.format(self.ex.p.name), bold = True))
+
+        cmd = [self.ex.p.binary_file()]
+
+        r = subprocess.run(cmd, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+        
+        if True: #r.returncode != 0:
+            print(r.stdout.decode())
+            print(r.stderr.decode())
+
+        return r.returncode
+
 class Executable(CProject):
     args = []
+
     def __init__(self, project, name, config_file):
         super(Executable, self).__init__(project, name, config_file)
  
@@ -501,7 +532,15 @@ class Executable(CProject):
 
         yield from l.rules()
 
-        yield from self.rules_files_header_processed()
+        #yield from self.rules_files_header_processed()
+        
+        yield TestExecutable(l)
+
+
+
+
+
+
 
 
 
