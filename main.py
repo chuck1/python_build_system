@@ -55,6 +55,10 @@ def new_class(args):
     src = os.path.join(pbs2.BASE_DIR, "templates2", "CHeader.hpp_in")
     dst = f
 
+    if os.path.exists(dst):
+        print('file exists')
+        return
+
     shutil.copyfile(src, dst)
 
 #######################################
