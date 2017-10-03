@@ -509,6 +509,11 @@ class TestExecutable(pymake.Rule):
         if True: #r.returncode != 0:
             print(r.stdout.decode())
             print(r.stderr.decode())
+        
+        if(r.returncode == 0):
+            with open(self.f_out, "w") as f:
+                f.write(r.stdout.decode())
+                f.write(r.stderr.decode())
 
         return r.returncode
 
