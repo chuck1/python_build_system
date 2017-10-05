@@ -9,6 +9,7 @@ import crayons
 
 import pbs2.rules
 import pbs2.rules.doc
+from pbs2.util import *
 
 from pbs2.shared.binary import CSharedLibraryPython
 
@@ -246,14 +247,14 @@ add extra build args like so:
 
 """
 class CExecutable(pymake.Rule):
-    args = []
-
     def __init__(self, library_project):
         self.library_project = library_project
         self.p = library_project
  
         super(CExecutable, self).__init__(self.library_project.binary_file())
-        
+       
+        self.args = Arguments()
+
     def f_in(self, makefile):
         yield pymake.ReqFile(self.library_project.config_file)
 
@@ -266,19 +267,26 @@ class CExecutable(pymake.Rule):
         for d in self.library_project.deps:
             yield pymake.ReqFile(d.binary_file())
 
+    def get_args_link(self):
+        args_link = ['-l' + d.name for d in self.library_project.deps]
+        for d in self.p.deps:
+            for l in d.args.libraries:
+                args_link.append('-l' + l)
+        return args_link
+
     def build(self, mc, _, f_in):
         pymake.makedirs(os.path.dirname(self.f_out))
 
-        args = ['-g','-pg','-std=c++11'] + self.library_project.args
+        args = ['-g','-pg','-std=c++11'] + self.p.args.args
         
         print(crayons.red("Build executable " + self.library_project.name, bold = True))
         print("    args: {}".format(" ".join(args)))
 
-        args_link = ['-l' + d.name for d in self.library_project.deps]
+        args_link = self.get_args_link()
 
         args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
 
-        cmd = ['g++'] + args + ['-o', self.f_out] + list(self.library_project.files_object()) + args_library_dir + args_link + self.library_project.args
+        cmd = ['g++'] + args + ['-o', self.f_out] + list(self.library_project.files_object()) + args_library_dir + args_link + self.p.args.args
         
         #print(" ".join(cmd))
 
@@ -334,7 +342,7 @@ class CProject(pymake.Rule):
         self._test = False
 
         # custom args
-        self.args = []
+        self.args = Arguments()
 
         super(CProject, self).__init__(self.name+'-all')
 
@@ -345,7 +353,7 @@ class CProject(pymake.Rule):
         yield '-fPIC'
         yield '-Wall'
         yield '-Werror'
-        yield from self.args
+        yield from self.args.args
 
     def f_in(self, makefile):
         yield pymake.ReqFile(__file__)
