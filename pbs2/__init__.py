@@ -549,6 +549,7 @@ class Executable(CProject):
         
         yield TestExecutable(l)
 
+        yield from self.rules_files_header_processed()
 
 
 
