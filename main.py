@@ -1,71 +1,92 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
+import pbs2
+import pymake
+import re
+import os
+import shutil
 
-import pbs
-import pbs.gen
-import pbs.clean
-import pbs.tools.header_dep.pre2
-import pbs.tools.header_dep.pre3
-import pbs.tools.pkg
-import pbs.tools.make.func
+def Make(args):
+    p = pbs2.Project()
+    
+    p.execfile(args.file)
+    
+    m = pymake.Makefile()
+    
+    m.rules += list(p.rules())
+    
+    try:
+        if args.target:
+            m.make(target=args.target)
+        else:
+            m.make(target='all')
+    except pymake.BuildError as ex:
+        print(ex)
 
-def gen(args):
-    pbs.gen.gen_func(args)
-def make(args):
-    pbs.tools.make.func.func(args)
-def clean(args):
-    pbs.clean.func_clean(args)
-def header_check(args):
-    pbs.tools.header_checker.func(args)
-def header_dep(args):
-    pbs.tools.header_dep.header_dep_func(args)
-def pre2(args):
-    pbs.tools.header_dep.pre2.pre2_func(args)
-def pre3(args):
-    pbs.tools.header_dep.pre3.pre3_func(args)
-def pkg(args):
-    pbs.tools.pkg.pkg_func(args)
+def Find(args):
+    
+    #print 'Find',repr(args.pattern)
+
+    pat = re.compile(args.pattern)
+
+    for root, dirs, files in os.walk('.'):
+        for f in files:
+            f = os.path.join(root, f)
+
+            m = pat.match(f)
+
+            if m:
+                print(f)
+                #print m.groups()
+                
+                if args.move:
+                    dst = re.sub(args.pattern, args.move, f)
+                    print('move', repr(dst))
+                    shutil.move(f, dst)
+
+def new_class(args):
+
+    f = args.file
+    d = os.path.dirname(f)
+
+    pymake.makedirs(d)
+
+    src = os.path.join(pbs2.BASE_DIR, "templates2", "CHeader.hpp_in")
+    dst = f
+
+    if os.path.exists(dst):
+        print('file exists')
+        return
+
+    shutil.copyfile(src, dst)
+
+#######################################
 
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
 
-parser_gen = subparsers.add_parser('gen')
-parser_gen.add_argument('root')
-parser_gen.add_argument('-p', nargs=3)
-parser_gen.set_defaults(func=gen)
-
-parser_hd = subparsers.add_parser('header_dep')
-parser_hd.add_argument("-d", help="directory", default=".")
-parser_hd.add_argument("-p", help="path prefix for label")
-parser_hd.add_argument("-c", action='store_true', help="do the precompiling")
-parser_hd.add_argument("-r", action='store_true', help="render dot")
-parser_hd.add_argument("-v", action='store_true', help="verbose")
-parser_hd.add_argument("-s", action='store_true', help="display system headers")
-parser_hd.set_defaults(func=header_dep)
-
-parser_pre2 = subparsers.add_parser('pre2')
-parser_pre2.add_argument("filename_in")
-parser_pre2.add_argument("filename_out")
-parser_pre2.set_defaults(func=pre2)
-
-parser_pre3 = subparsers.add_parser('pre3')
-parser_pre3.add_argument("filename_in")
-parser_pre3.add_argument("filename_out")
-parser_pre3.set_defaults(func=pre3)
-
-parser_pkg = subparsers.add_parser('pkg')
-parser_pkg.add_argument("component")
-parser_pkg.set_defaults(func=pkg)
-
-parser_clean = subparsers.add_parser('clean')
-parser_clean.set_defaults(func=clean)
-
 parser_make = subparsers.add_parser('make')
-parser_make.set_defaults(func=make)
-parser_make.add_argument("-v", action='store_true', help="verbose")
+parser_make.add_argument('file')
+parser_make.add_argument('target', nargs='*')
+parser_make.set_defaults(func=Make)
+
+parser_find = subparsers.add_parser('find')
+parser_find.add_argument('pattern')
+parser_find.add_argument('--move')
+parser_find.set_defaults(func=Find)
+
+parser_make = subparsers.add_parser('new_class')
+parser_make.add_argument('file')
+parser_make.set_defaults(func=new_class)
+
+def help_(_):
+    parser.print_help()
+
+parser.set_defaults(func=help_)
 
 args = parser.parse_args()
+
 args.func(args)
 
 
