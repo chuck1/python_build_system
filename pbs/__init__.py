@@ -440,16 +440,16 @@ class LibraryPython(CProject):
     def __init__(self, project, name, config_file):
         super(LibraryPython, self).__init__(project, name, config_file)
        
-        #self.l_include_dirs.append("/usr/include/python3.5")
-        self.l_include_dirs.append("/usr/include/python2.7")
+        self.l_include_dirs.append("/usr/include/python3.6")
+        #self.l_include_dirs.append("/usr/include/python2.7")
 
     def get_c_source_args(self):
         yield from super(LibraryPython, self).get_c_source_args()
         #yield '-fPIC'
 
-    def build_requirements(self, makefile):
-
-        yield from super(LibraryPython, self).f_in(makefile)
+    def build_requirements(self, makefile, func):
+        for f in super(LibraryPython, self).build_requirements(makefile, func):
+            yield f
         
     def binary_file(self):
         return os.path.join(self.build_dir, 'lib' + self.name + '.so')

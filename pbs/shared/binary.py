@@ -22,17 +22,17 @@ class CSharedLibraryPython(pymake.Rule):
         
         self.args = Arguments()
 
-    def f_in(self, makefile):
-        yield pymake.ReqFile(__file__)
+    def build_requirements(self, makefile, func):
+        yield func(pymake.ReqFile(__file__))
 
         for d in self.p.deps:
-            yield pymake.ReqFile(d.binary_file())
+            yield func(pymake.ReqFile(d.binary_file()))
 
         for s in self.p.files_object():
-            yield pymake.ReqFile(s)
+            yield func(pymake.ReqFile(s))
 
         for s in self.p.files_header_processed():
-            yield pymake.ReqFile(s)
+            yield func(pymake.ReqFile(s))
 
     def get_args_link(self):
         args_link = ['-l' + d.name for d in self.p.deps]
@@ -54,7 +54,8 @@ class CSharedLibraryPython(pymake.Rule):
         #inc_paths = -I/usr/include/python3.5
 
         #libs = ['-lboost_python-py35','-lpython3.5m']
-        libs = ['-lboost_python-py27','-lpython2.7']
+        #libs = ['-lboost_python-py27','-lpython2.7']
+        libs = ['-lboost_python-py36','-lpython3.6m']
 
         args_library_dir = ['-L' + d.build_dir for d in self.p.deps]
         
@@ -69,7 +70,9 @@ class CSharedLibraryPython(pymake.Rule):
         
         print(" ".join(cmd))
 
-        return subprocess.call(cmd)
+        ret = subprocess.call(cmd)
+
+        if ret != 0: raise Exception()
 
     def rules(self):
         """
