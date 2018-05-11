@@ -6,9 +6,9 @@ import jinja2
 
 import crayons
 
-import pbs2.rules
-import pbs2.rules.doc
-from pbs2.util import *
+import pbs.rules
+import pbs.rules.doc
+from pbs.util import *
 
 """
 the shared library binary file

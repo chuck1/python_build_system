@@ -1,7 +1,7 @@
 import os
 import pymake
 import jinja2
-import pbs2
+import pbs
 import subprocess
 
 class Doxyfile(pymake.Rule):
@@ -11,7 +11,7 @@ class Doxyfile(pymake.Rule):
         super(Doxyfile, self).__init__(os.path.join(self.library_project.build_dir, "Doxyfile"))
         
     def f_in(self, makefile):
-        yield pymake.ReqFile(os.path.join(pbs2.BASE_DIR, 'templates', 'Doxyfile'))
+        yield pymake.ReqFile(os.path.join(pbs.BASE_DIR, 'templates', 'Doxyfile'))
         yield pymake.ReqFile(self.library_project.config_file)
 
     def build(self, mc, _, f_in):
@@ -23,7 +23,7 @@ class Doxyfile(pymake.Rule):
         pymake.makedirs(os.path.dirname(f_out))
 
         env = jinja2.environment.Environment()
-        template_dirs = [os.path.join(pbs2.BASE_DIR,'templates'), self.library_project.config_dir, '/', '.']
+        template_dirs = [os.path.join(pbs.BASE_DIR,'templates'), self.library_project.config_dir, '/', '.']
         env.loader = jinja2.FileSystemLoader(template_dirs)
         
         temp = env.get_template(f_in)

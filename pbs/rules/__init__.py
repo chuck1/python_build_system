@@ -2,8 +2,6 @@ import subprocess
 import pymake
 import os
 import re
-import termcolor
-
 import crayons
 
 class CSourceFileDeps(pymake.Rule):
@@ -19,13 +17,14 @@ class CSourceFileDeps(pymake.Rule):
 
         super(CSourceFileDeps, self).__init__(self.file_deps)
 
-    def f_in(self, mc):
-        yield pymake.ReqFile(self.file_source)
+    def build_requirements(self, mc, func):
+        yield func(pymake.ReqFile(self.file_source))
         
         # processed header files must be generated before deps command can run properly
         for f in self.library_project.files_header_processed():
             #yield pymake.ReqFile(f)
-            mc.make(f)
+            #mc.make(f)
+            yield func(pymake.ReqFile(f))
 
     def build(self, mc, _, f_in):
         print(crayons.yellow('CSourceFileDeps {}'.format(self.file_deps), bold = True))
@@ -103,20 +102,20 @@ class CSourceFile(pymake.Rule):
 
         super(CSourceFile, self).__init__(self.file_object)
 
-    def f_in(self, mc):
-        yield pymake.ReqFile(__file__)
-        yield pymake.ReqFile(self.library_project.config_file)
-        yield pymake.ReqFile(self.file_source)
+    def build_requirements(self, mc, func):
+        yield func(pymake.ReqFile(__file__))
+        yield func(pymake.ReqFile(self.library_project.config_file))
+        yield func(pymake.ReqFile(self.file_source))
         
-        yield self.rule_deps
+        yield func(self.rule_deps)
         
         #print("depends for {}".format(self.file_source))
         for f in self.rule_deps.read_file():
             #print("    {}".format(f))
-            yield pymake.ReqFile(f)
+            yield func(pymake.ReqFile(f))
 
         for f in self.library_project.deps:
-            yield f
+            yield func(f)
 
         #yield from [d.binary_file() for d in self.library_project.deps]
 
@@ -136,13 +135,15 @@ class CSourceFile(pymake.Rule):
 
         ret = subprocess.call(cmd)
 
-        if ret:
+        if ret != 0:
+            print('ret:', ret)
             print('include args:')
             for s in include_args:
                 print(s)
             print('files header processed')
             for f in self.library_project.files_header_processed():
                 print(f)
+            raise Exception(" ".join(cmd))
         
         return ret
 

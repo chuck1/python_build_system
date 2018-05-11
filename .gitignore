@@ -1,2 +1,4 @@
 *.pyc
 build/
+*.bak
+pbs.egg-info/

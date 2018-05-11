@@ -1,6 +1,6 @@
-import pbs2
+import pbs
 
-l = pbs2.Library('testlib', __file__)
+l = pbs.Library('testlib', __file__)
 
 self.parts.append(l)
 

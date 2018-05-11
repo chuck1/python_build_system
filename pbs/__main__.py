@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-
+import logging
 import argparse
-import pbs2
-import pymake
 import re
 import os
 import shutil
+import pymake
+import pbs
 
 def Make(args):
-    p = pbs2.Project()
+    p = pbs.Project()
     
     p.execfile(args.file)
     
@@ -52,7 +52,7 @@ def new_class(args):
 
     pymake.makedirs(d)
 
-    src = os.path.join(pbs2.BASE_DIR, "templates2", "CHeader.hpp_in")
+    src = os.path.join(pbs.BASE_DIR, "templates2", "CHeader.hpp_in")
     dst = f
 
     if os.path.exists(dst):
@@ -79,6 +79,18 @@ parser_find.set_defaults(func=Find)
 parser_make = subparsers.add_parser('new_class')
 parser_make.add_argument('file')
 parser_make.set_defaults(func=new_class)
+
+
+
+
+logging.basicConfig(level=logging.INFO)
+
+
+
+
+
+
+
 
 def help_(_):
     parser.print_help()
