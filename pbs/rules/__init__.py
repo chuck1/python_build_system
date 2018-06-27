@@ -15,9 +15,9 @@ class CSourceFileDeps(pymake.Rule):
 
         self.file_deps = os.path.join(library_project.object_dir, h+'.dep')
 
-        super(CSourceFileDeps, self).__init__(self.file_deps)
+        super().__init__(pymake.ReqFile(self.file_deps))
 
-    def build_requirements(self, mc, func):
+    async def build_requirements(self, mc, func):
         yield func(pymake.ReqFile(self.file_source))
         
         # processed header files must be generated before deps command can run properly
@@ -26,7 +26,7 @@ class CSourceFileDeps(pymake.Rule):
             #mc.make(f)
             yield func(pymake.ReqFile(f))
 
-    def build(self, mc, _, f_in):
+    async def build(self, mc, _, f_in):
         print(crayons.yellow('CSourceFileDeps {}'.format(self.file_deps), bold = True))
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
@@ -100,9 +100,9 @@ class CSourceFile(pymake.Rule):
 
         self.rule_deps = CSourceFileDeps(library_project, filename)
 
-        super(CSourceFile, self).__init__(self.file_object)
+        super().__init__(pymake.ReqFile(self.file_object))
 
-    def build_requirements(self, mc, func):
+    async def build_requirements(self, mc, func):
         yield func(pymake.ReqFile(__file__))
         yield func(pymake.ReqFile(self.library_project.config_file))
         yield func(pymake.ReqFile(self.file_source))
@@ -119,7 +119,7 @@ class CSourceFile(pymake.Rule):
 
         #yield from [d.binary_file() for d in self.library_project.deps]
 
-    def build(self, mc, _, f_in):
+    async def build(self, mc, _, f_in):
         pymake.makedirs(os.path.dirname(self.f_out))
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]

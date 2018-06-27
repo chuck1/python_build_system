@@ -18,7 +18,7 @@ class CSharedLibraryPython(pymake.Rule):
     def __init__(self, library_project):
         self.p = library_project
  
-        super(CSharedLibraryPython, self).__init__(self.p.binary_file())
+        super().__init__(pymake.ReqFile(self.p.binary_file()))
         
         self.args = Arguments()
 
@@ -41,7 +41,7 @@ class CSharedLibraryPython(pymake.Rule):
                 args_link.append('-l' + l)
         return args_link
 
-    def build(self, mc, _, f_in):
+    async def build(self, mc, _, f_in):
         print(crayons.green('Build CStaticLibrary ' + self.p.name, bold = True))
 
         #libhello.so: hello.cpp hello.h
