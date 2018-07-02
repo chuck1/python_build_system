@@ -120,7 +120,7 @@ class CSourceFile(pymake.Rule):
         #yield from [d.binary_file() for d in self.library_project.deps]
 
     async def build(self, mc, _, f_in):
-        pymake.makedirs(os.path.dirname(self.f_out))
+        pymake.makedirs(os.path.dirname(self.req.fn))
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
         define_args = ['-D' + d for d in self.library_project.defines()]

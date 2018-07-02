@@ -3,12 +3,15 @@ import os
 import pymake
 import subprocess
 import jinja2
+import logging
 
 import crayons
 
 import pbs.rules
 import pbs.rules.doc
 from pbs.util import *
+
+logger = logging.getLogger(__name__)
 
 """
 the shared library binary file
@@ -22,17 +25,17 @@ class CSharedLibraryPython(pymake.Rule):
         
         self.args = Arguments()
 
-    def f_in(self, makefile):
-        yield pymake.ReqFile(__file__)
+    async def build_requirements(self, makefile, func):
+        yield func(pymake.ReqFile(__file__))
 
         for d in self.p.deps:
-            yield pymake.ReqFile(d.binary_file())
+            yield func(pymake.ReqFile(d.binary_file()))
 
         for s in self.p.files_object():
-            yield pymake.ReqFile(s)
+            yield func(pymake.ReqFile(s))
 
         for s in self.p.files_header_processed():
-            yield pymake.ReqFile(s)
+            yield func(pymake.ReqFile(s))
 
     def get_args_link(self):
         args_link = ['-l' + d.name for d in self.p.deps]
@@ -42,32 +45,32 @@ class CSharedLibraryPython(pymake.Rule):
         return args_link
 
     async def build(self, mc, _, f_in):
-        print(crayons.green('Build CStaticLibrary ' + self.p.name, bold = True))
 
         #libhello.so: hello.cpp hello.h
         #g++ hello.cpp -shared -o libhello.so -fPIC -std=c++0x ${inc_paths} ${libs}
 
-        f_out = self.f_out
+        f_out = self.req.fn
 
         pymake.makedirs(os.path.dirname(f_out))
 
         #inc_paths = -I/usr/include/python3.5
 
-        #libs = ['-lboost_python-py35','-lpython3.5m']
-        libs = ['-lboost_python-py27','-lpython2.7']
+        libs = ['-lboost_python-py36','-lpython3.6m']
+        #libs = ['-lboost_python-py27','-lpython2.7']
 
         args_library_dir = ['-L' + d.build_dir for d in self.p.deps]
         
         args_link = self.get_args_link()
         
         # whole archive
-        args_link_whole = ["-Wl,-whole-archive"] + args_link + ["-Wl,-no-whole-archive"]
+        args_link_whole = ["-Wl,-whole-archive"] + args_link + libs + ["-Wl,-no-whole-archive"]
 
         objs = list(self.p.files_object())
 
-        cmd = ['g++'] + objs + ['-shared', '-o', f_out, '-fPIC', '-std=c++0x'] + args_library_dir + args_link_whole + libs
+        cmd = ['g++'] + objs + ['-shared', '-o', f_out, '-fPIC', '-std=c++0x']
+        cmd += args_library_dir + args_link_whole + libs + libs
         
-        print(" ".join(cmd))
+        logger.info(" ".join(cmd))
 
         return subprocess.call(cmd)
 

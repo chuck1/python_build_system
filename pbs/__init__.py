@@ -34,7 +34,7 @@ class _All(pymake.Rule):
             yield func(pymake.ReqFile(p.name + '-all'))
 
     async def build(self, mc, _, f_in):
-        self.project.build(mc, None, None)
+        await self.project.build(mc, None, None)
 
 class _Doc(pymake.Rule):
     def __init__(self, project):
@@ -179,26 +179,26 @@ class CHeaderTemplateFile(pymake.Rule):
         out = preamble + "\n" + temp.render(c)
         
         try:
-            os.chmod(self.f_out, stat.S_IRUSR | stat.S_IWUSR )
+            os.chmod(self.req.fn, stat.S_IRUSR | stat.S_IWUSR )
         except Exception as e:
             print("error in chmod", e)
 
-        pymake.makedirs(os.path.dirname(self.f_out))
+        pymake.makedirs(os.path.dirname(self.req.fn))
 
         try:
-            with open(self.f_out, 'w') as f:
+            with open(self.req.fn, 'w') as f:
                 f.write(out)
         except Exception as e:
             print("error in write", e)
             raise
 
         try:
-            os.chmod(self.f_out, stat.S_IRUSR)
+            os.chmod(self.req.fn, stat.S_IRUSR)
         except Exception as e:
             print("error in chmod", e)
             raise
 
-        st = os.stat(self.f_out)
+        st = os.stat(self.req.fn)
 
 """
 the actual library file
@@ -221,9 +221,9 @@ class CStaticLibrary(pymake.Rule):
     async def build(self, mc, _, f_in):
         print('build CStaticLibrary', self.library_project.name)
 
-        pymake.makedirs(os.path.dirname(self.f_out))
+        pymake.makedirs(os.path.dirname(self.req.fn))
 
-        cmd = ['ar', 'rcs', self.f_out] + list(self.library_project.files_object())
+        cmd = ['ar', 'rcs', self.req.fn] + list(self.library_project.files_object())
         
         #print(" ".join(cmd))
 
@@ -275,7 +275,7 @@ class CExecutable(pymake.Rule):
         return args_link
 
     async def build(self, mc, _, f_in):
-        pymake.makedirs(os.path.dirname(self.f_out))
+        pymake.makedirs(os.path.dirname(self.req.fn))
 
         args = ['-g','-pg','-std=c++11'] + self.p.args.args
         
@@ -286,7 +286,9 @@ class CExecutable(pymake.Rule):
 
         args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
 
-        cmd = ['g++'] + args + ['-o', self.f_out] + list(self.library_project.files_object()) + args_library_dir + args_link + self.p.args.args
+        cmd = ['g++'] + args + ['-o', self.req.fn]
+        cmd += list(self.library_project.files_object()) + args_library_dir
+        cmd += args_link + args_link + self.p.args.args
         
         #print(" ".join(cmd))
 
@@ -369,8 +371,7 @@ class CProject(pymake.Rule):
             yield func(pymake.ReqFile(os.path.join(self.build_dir, 'test.txt')))
 
     async def build(self, mc, _, f_in):
-        #print('Library build out:', f_out, 'in:', f_in)
-        print('CProject build name:', self.name, 'out:', self.f_out)
+        print('CProject build name:', self.name, 'out:', self.req.fn)
         return 0
 
     def include_dirs(self):
@@ -442,8 +443,8 @@ class LibraryPython(CProject):
     def __init__(self, project, name, config_file):
         super(LibraryPython, self).__init__(project, name, config_file)
        
-        #self.l_include_dirs.append("/usr/include/python3.5")
-        self.l_include_dirs.append("/usr/include/python2.7")
+        self.l_include_dirs.append("/usr/include/python3.6")
+        #self.l_include_dirs.append("/usr/include/python2.7")
 
     def get_c_source_args(self):
         yield from super(LibraryPython, self).get_c_source_args()
@@ -479,8 +480,7 @@ class Library(CProject):
         self.doc_out_dir = os.path.join(self.build_dir, "html")
 
     async def build_requirements(self, makefile, func):
-        yield pymake.ReqFile(__file__)
-        for _ in super(Library, self).build_requirements(makefile, func):
+        async for _ in super().build_requirements(makefile, func):
             yield _
         
     def binary_file(self):
