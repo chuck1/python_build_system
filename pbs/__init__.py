@@ -1,7 +1,9 @@
-import stat
+import logging
 import os
 import pymake
+import stat
 import subprocess
+
 import jinja2
 import crayons
 
@@ -12,6 +14,8 @@ from pbs.util import *
 from pbs.shared.binary import CSharedLibraryPython
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+logger = logging.getLogger(__name__)
 
 def filename_to_list(s):
     lst = []
@@ -366,13 +370,12 @@ class CProject(pymake.Rule):
         for f in self.files_header_processed():
             yield func(f)
 
-        print(self, 'test =', self._test)
+        logger.debug(self, 'test =', self._test)
         if self._test:
             yield func(pymake.ReqFile(os.path.join(self.build_dir, 'test.txt')))
 
     async def build(self, mc, _, f_in):
-        print('CProject build name:', self.name, 'out:', self.req.fn)
-        return 0
+        logger.debug('CProject build name:', self.name, 'out:', self.req.fn)
 
     def include_dirs(self):
         yield self.include_dir

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import logging.config
 import argparse
 import re
 import os
@@ -117,7 +118,35 @@ parser_make.set_defaults(func=new_class)
 
 
 
-logging.basicConfig(level=logging.INFO)
+
+FMT_STRING = "%(name)14s %(levelname)7s %(message)s"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'basic'
+            },
+        },
+    'loggers': {
+        'pymake': {
+            'handlers': ['console'],
+            'level': logging.INFO,
+            'propagate': False,            
+            },
+        'pbs': {
+            'handlers': ['console'],
+            'level': logging.INFO,
+            'propagate': False,            
+            },
+        },
+    'formatters': {"basic": {"format": FMT_STRING}}
+    }
+
+logging.config.dictConfig(LOGGING)
 
 
 
