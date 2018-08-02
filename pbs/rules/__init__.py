@@ -1,8 +1,10 @@
 import subprocess
-import pymake
 import os
 import re
+
+import pymake
 import crayons
+import pbs.exception
 
 class CSourceFileDeps(pymake.Rule):
     def __init__(self, library_project, filename):
@@ -138,12 +140,16 @@ class CSourceFile(pymake.Rule):
         if ret != 0:
             print('ret:', ret)
             print('include args:')
+
             for s in include_args:
                 print(s)
+
             print('files header processed')
+
             for f in self.library_project.files_header_processed():
                 print(f)
-            raise Exception(" ".join(cmd))
+
+            raise pbs.exception.CompileError(" ".join(cmd))
         
         return ret
 

@@ -5,6 +5,8 @@ import argparse
 import re
 import os
 import shutil
+
+import crayons
 import pymake
 import pbs
 from mybuiltins import ason
@@ -56,8 +58,10 @@ async def Make(args):
             await m.make(target=args.target)
         else:
             await m.make(target='all')
-    except pymake.BuildError as ex:
-        print(ex)
+    except pymake.BuildError as e:
+        print(e)
+    except pbs.exception.CompileError as e:
+        print(crayons.red(str(e)))
 
 async def Find(args):
     
