@@ -1,3 +1,3 @@
 [submodule "modules/pymake"]
 	path = modules/pymake
-	url = git@github.com:chuck1/pymake
+	url = /home/charles/WindowsShare/RepoBridge/pymake.git
