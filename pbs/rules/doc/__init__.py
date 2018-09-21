@@ -66,9 +66,15 @@ class Doxygen(pymake.Rule):
 
         p = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         
-        p.communicate()
+        outs, errs = p.communicate()
 
-        return p.returncode
+        if p.returncode != 0:
+            print("----------------------------------------------------------")
+            print(outs)
+            print("----------------------------------------------------------")
+            print(errs)
+            print("----------------------------------------------------------")
+            raise Exception()
 
     def rules(self):
         """
