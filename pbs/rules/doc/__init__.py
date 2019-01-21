@@ -14,7 +14,7 @@ class Doxyfile(pymake.Rule):
         yield pymake.ReqFile(os.path.join(pbs.BASE_DIR, 'templates', 'Doxyfile'))
         yield pymake.ReqFile(self.library_project.config_file)
 
-    def build(self, mc, _, f_in):
+    async def build(self, mc, _, f_in):
         print("build Doxyfile", self.f_out)
         
         f_out = self.f_out
@@ -61,7 +61,7 @@ class Doxygen(pymake.Rule):
         for f in self.library_project.files_header_processed():
             yield pymake.ReqFile(f)
 
-    def build(self, mc, _, f_in):
+    async def build(self, mc, _, f_in):
         print("build Doxygen", self.library_project.name)
 
         cmd = ['doxygen', self.doxyfile]

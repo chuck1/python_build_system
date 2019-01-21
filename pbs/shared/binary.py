@@ -18,21 +18,21 @@ class CSharedLibraryPython(pymake.Rule):
     def __init__(self, library_project):
         self.p = library_project
  
-        super(CSharedLibraryPython, self).__init__(self.p.binary_file())
+        super().__init__(pymake.ReqFile(self.p.binary_file()))
         
         self.args = Arguments()
 
-    def f_in(self, makefile):
-        yield pymake.ReqFile(__file__)
+    async def build_requirements(self, mc, func):
+        yield func(pymake.ReqFile(__file__))
 
         for d in self.p.deps:
-            yield pymake.ReqFile(d.binary_file())
+            yield func(pymake.ReqFile(d.binary_file()))
 
         for s in self.p.files_object():
-            yield pymake.ReqFile(s)
+            yield func(pymake.ReqFile(s))
 
         for s in self.p.files_header_processed():
-            yield pymake.ReqFile(s)
+            yield func(pymake.ReqFile(s))
 
     def get_args_link(self):
         args_link = ['-l' + d.name for d in self.p.deps]
@@ -41,7 +41,7 @@ class CSharedLibraryPython(pymake.Rule):
                 args_link.append('-l' + l)
         return args_link
 
-    def build(self, mc, _, f_in):
+    async def build(self, mc, _, f_in):
         print(crayons.green('Build CStaticLibrary ' + self.p.name, bold = True))
 
         #libhello.so: hello.cpp hello.h
@@ -65,7 +65,8 @@ class CSharedLibraryPython(pymake.Rule):
 
         objs = list(self.p.files_object())
 
-        cmd = ['g++'] + objs + ['-shared', '-o', f_out, '-fPIC', '-std=c++0x'] + args_library_dir + args_link_whole + libs
+        cmd = ['g++'] + objs + ['-shared', '-o', f_out, '-fPIC', '-std=c++0x'] 
+        cmd += args_library_dir + args_link_whole + libs
         
         print(" ".join(cmd))
 

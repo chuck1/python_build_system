@@ -15,9 +15,9 @@ class CSourceFileDeps(pymake.Rule):
 
         self.file_deps = os.path.join(library_project.object_dir, h+'.dep')
 
-        super(CSourceFileDeps, self).__init__(self.file_deps)
+        super().__init__(pymake.ReqFile(self.file_deps))
 
-    def build_requirements(self, mc, func):
+    async def build_requirements(self, mc, func):
         yield func(pymake.ReqFile(self.file_source))
         
         # processed header files must be generated before deps command can run properly
@@ -26,8 +26,7 @@ class CSourceFileDeps(pymake.Rule):
             #mc.make(f)
             yield func(pymake.ReqFile(f))
 
-    def build(self, mc, _, f_in):
-        print(crayons.yellow('CSourceFileDeps {}'.format(self.file_deps), bold = True))
+    async def build(self, mc, _, f_in):
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
 
@@ -100,32 +99,34 @@ class CSourceFile(pymake.Rule):
 
         self.rule_deps = CSourceFileDeps(library_project, filename)
 
-        super(CSourceFile, self).__init__(self.file_object)
+        super().__init__(pymake.ReqFile(self.file_object))
 
-    def build_requirements(self, mc, func):
+    async def build_requirements(self, mc, func):
         yield func(pymake.ReqFile(__file__))
         yield func(pymake.ReqFile(self.library_project.config_file))
         yield func(pymake.ReqFile(self.file_source))
         
         yield func(self.rule_deps)
-        
-        #print("depends for {}".format(self.file_source))
-        for f in self.rule_deps.read_file():
-            #print("    {}".format(f))
-            yield func(pymake.ReqFile(f))
+       
+        print(repr(self.rule_deps.req))
+        for line in self.rule_deps.read_file():
+            for f in line.split(' '):
+                print(f"deps: {f}")
+                yield func(pymake.ReqFile(f))
 
         for f in self.library_project.deps:
             yield func(f)
 
         #yield from [d.binary_file() for d in self.library_project.deps]
 
-    def build(self, mc, _, f_in):
-        pymake.makedirs(os.path.dirname(self.f_out))
+    async def build(self, mc, _, f_in):
+        pymake.makedirs(os.path.dirname(self.req.fn))
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
         define_args = ['-D' + d for d in self.library_project.defines()]
         
-        args = ['-g', '-pg','-c','-std=c++11'] + list(a for a in self.library_project.get_c_source_args() if a is not None)
+        args = ['-g', '-pg','-c','-std=c++11']
+        args += list(a for a in self.library_project.get_c_source_args() if a is not None)
 
         cmd = ['g++'] + args + [self.file_source, '-o', self.file_object] + include_args + define_args
         

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+import asyncio
 import logging
 import argparse
 import re
@@ -6,13 +6,50 @@ import os
 import shutil
 import pymake
 import pbs
+from mybuiltins import ason
 
-def Make(args):
+class Decoder(ason.Decoder):
+    async def parse_function(self, k, args, kwargs):
+        _ = {
+            #'/mc': mc,
+            }
+        if k in _: return _[k]
+
+        _ = {
+            #'/eval': _eval,
+            #'/ReqFile':     pymake.ReqFile,
+            #'/ReqDoc':      pymake.req.ReqDoc,
+            #'/Array':       functools.partial(coil_testing.array.Array, mc),
+            #'/Series':      functools.partial(coil_testing.coil_calc.process.series.Series, mc),
+            #'/read_pickle': functools.partial(_read_pickle, mc),
+            }
+
+        f = _[k]
+
+        try:
+
+            res = f(*args, **kwargs)
+
+            if asyncio.iscoroutine(res):
+                return await res
+
+        except Exception as e:
+            logger.error(f'f      = {f!r}')
+            logger.error(f'args   = {args!r}')
+            logger.error(f'kwargs = {kwargs!r}')
+            logger.error(f'e      = {e!r}')
+            raise
+
+        return res
+
+async def _make(args):
     p = pbs.Project()
     
     p.execfile(args.file)
     
     m = pymake.Makefile()
+
+    m.decoder = Decoder()
     
     m.rules += list(p.rules())
     
@@ -20,11 +57,11 @@ def Make(args):
         if args.target:
             m.make(target=args.target)
         else:
-            m.make(target='all')
+            await m.make(target='all')
     except pymake.BuildError as ex:
         print(ex)
 
-def Find(args):
+async def Find(args):
     
     #print 'Find',repr(args.pattern)
 
@@ -45,7 +82,7 @@ def Find(args):
                     print('move', repr(dst))
                     shutil.move(f, dst)
 
-def new_class(args):
+async def new_class(args):
 
     f = args.file
     d = os.path.dirname(f)
@@ -69,7 +106,7 @@ subparsers = parser.add_subparsers()
 parser_make = subparsers.add_parser('make')
 parser_make.add_argument('file')
 parser_make.add_argument('target', nargs='*')
-parser_make.set_defaults(func=Make)
+parser_make.set_defaults(func=_make)
 
 parser_find = subparsers.add_parser('find')
 parser_find.add_argument('pattern')
@@ -88,18 +125,26 @@ logging.basicConfig(level=logging.INFO)
 
 
 
-
-
-
-
-def help_(_):
+async def help_(_):
     parser.print_help()
 
 parser.set_defaults(func=help_)
 
 args = parser.parse_args()
 
-args.func(args)
+loop = asyncio.get_event_loop()
+
+loop.run_until_complete(args.func(args))
+
+
+
+
+
+
+
+
+
+
 
 
 
