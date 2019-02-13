@@ -28,27 +28,37 @@ def filename_to_list(s):
         lst.insert(0,t)
     return lst
 
-class _All(pymake.Rule):
+class _All(pymake.rules.Rule):
     def __init__(self, project):
         self.project = project
-        super().__init__(pymake.ReqFile('all'))
+        super().__init__(pymake.req.ReqFile('all'))
     
-    async def build_requirements(self, mc, func):
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
         for p in self.project.parts:
-            yield func(pymake.ReqFile(p.name + '-all'))
+            yield await func(pymake.req.ReqFile(p.name + '-all'))
 
     async def build(self, mc, _, f_in):
         await self.project.build(mc, None, None)
 
-class _Doc(pymake.Rule):
+        await self.req.write_string("")
+
+class _Doc(pymake.rules.Rule):
     def __init__(self, project):
         self.project = project
-        super().__init__(pymake.ReqFile('doc'))
+        super().__init__(pymake.req.ReqFile('doc'))
     
-    async def build_requirements(self, mc, func):
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
         for p in self.project.parts:
             if isinstance(p, Library):
-                yield func(pymake.ReqFile(p.name + '-doc'))
+                yield await func(pymake.req.ReqFile(p.name + '-doc'))
 
     async def build(self, mc, _, f_in):
         await self.project.build(mc, None, None)
@@ -86,7 +96,7 @@ class Project(object):
                 return p
         raise Exception('part not found: '+name)
 
-class CHeaderTemplateFile(pymake.Rule):
+class CHeaderTemplateFile(pymake.rules.Rule):
     def __init__(self, library_project, filename):
         self.library_project = library_project
         self.file_in  = filename
@@ -97,11 +107,15 @@ class CHeaderTemplateFile(pymake.Rule):
        
         f_out = os.path.join(self.library_project.process_include_dir, h+'.hpp')
 
-        super().__init__(pymake.ReqFile(f_out))
+        super().__init__(pymake.req.ReqFile(f_out))
 
-    async def build_requirements(self, makefile, func):
-        yield func(pymake.ReqFile(self.file_in))
-        yield func(pymake.ReqFile(self.library_project.config_file))
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
+        yield await func(pymake.req.ReqFile(self.file_in))
+        yield await func(pymake.req.ReqFile(self.library_project.config_file))
 
     def get_context(self):
         c = dict()
@@ -187,7 +201,7 @@ class CHeaderTemplateFile(pymake.Rule):
         except Exception as e:
             print("error in chmod", e)
 
-        pymake.makedirs(os.path.dirname(self.req.fn))
+        pymake.util.makedirs(os.path.dirname(self.req.fn))
 
         try:
             with open(self.req.fn, 'w') as f:
@@ -207,25 +221,29 @@ class CHeaderTemplateFile(pymake.Rule):
 """
 the actual library file
 """
-class CStaticLibrary(pymake.Rule):
+class CStaticLibrary(pymake.rules.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
  
-        super().__init__(pymake.ReqFile(self.library_project.binary_file()))
+        super().__init__(pymake.req.ReqFile(self.library_project.binary_file()))
         
-    async def build_requirements(self, makefile, func):
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
         #print('object files')
         for s in self.library_project.files_object():
             #print(s)
-            yield func(pymake.ReqFile(s))
+            yield await func(pymake.req.ReqFile(s))
 
         for s in self.library_project.files_header_processed():
-            yield func(pymake.ReqFile(s))
+            yield await func(pymake.req.ReqFile(s))
 
     async def build(self, mc, _, f_in):
         print('build CStaticLibrary', self.library_project.name)
 
-        pymake.makedirs(os.path.dirname(self.req.fn))
+        pymake.util.makedirs(os.path.dirname(self.req.fn))
 
         cmd = ['ar', 'rcs', self.req.fn] + list(self.library_project.files_object())
         
@@ -250,26 +268,30 @@ add extra build args like so:
     e.args.append("-an_arg")
 
 """
-class CExecutable(pymake.Rule):
+class CExecutable(pymake.rules.Rule):
     def __init__(self, library_project):
         self.library_project = library_project
         self.p = library_project
  
-        super().__init__(pymake.ReqFile(self.library_project.binary_file()))
+        super().__init__(pymake.req.ReqFile(self.library_project.binary_file()))
        
         self.args = Arguments()
 
-    async def build_requirements(self, makecall, func):
-        yield func(pymake.ReqFile(self.library_project.config_file))
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
+        yield await func(pymake.req.ReqFile(self.library_project.config_file))
 
         for f in self.library_project.files_object():
-            yield func(pymake.ReqFile(f))
+            yield await func(pymake.req.ReqFile(f))
 
         for f in self.library_project.files_header_processed():
-            yield func(pymake.ReqFile(f))
+            yield await func(pymake.req.ReqFile(f))
 
         for d in self.library_project.deps:
-            yield func(pymake.ReqFile(d.binary_file()))
+            yield await func(pymake.req.ReqFile(d.binary_file()))
 
     def get_args_link(self):
         args_link = ['-l' + d.name for d in self.library_project.deps]
@@ -279,7 +301,7 @@ class CExecutable(pymake.Rule):
         return args_link
 
     async def build(self, mc, _, f_in):
-        pymake.makedirs(os.path.dirname(self.req.fn))
+        pymake.util.makedirs(os.path.dirname(self.req.fn))
 
         args = ['-g','-pg','-std=c++11'] + self.p.args.args
         
@@ -327,7 +349,7 @@ how to add defines
     l.l_defines.append('A=1')
 
 """
-class CProject(pymake.Rule):
+class CProject(pymake.rules.Rule):
     def __init__(self, project, name, config_file):
         #print( name, config_file)
         self.project = project
@@ -353,7 +375,7 @@ class CProject(pymake.Rule):
         # custom args
         self.args = Arguments()
 
-        super(CProject, self).__init__(pymake.ReqFile(self.name+'-all'))
+        super(CProject, self).__init__(pymake.req.ReqFile(self.name+'-all'))
 
         #print('files header unprocessed',list(self.files_header_unprocessed()))
         #print('files header processed  ',list(self.files_header_processed()))
@@ -364,18 +386,22 @@ class CProject(pymake.Rule):
         yield '-Werror'
         yield from self.args.args
 
-    async def build_requirements(self, makefile, func):
-        yield func(pymake.ReqFile(__file__))
-        yield func(pymake.ReqFile(self.binary_file()))
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
+        yield await func(pymake.req.ReqFile(__file__))
+        yield await func(pymake.req.ReqFile(self.binary_file()))
         for f in self.files_header_processed():
-            yield func(f)
+            yield await func(pymake.req.ReqFile(f))
 
         logger.debug(self, 'test =', self._test)
         if self._test:
-            yield func(pymake.ReqFile(os.path.join(self.build_dir, 'test.txt')))
+            yield await func(pymake.req.ReqFile(os.path.join(self.build_dir, 'test.txt')))
 
     async def build(self, mc, _, f_in):
-        logger.debug('CProject build name:', self.name, 'out:', self.req.fn)
+        await self.req.write_string("")
 
     def include_dirs(self):
         yield self.include_dir
@@ -453,8 +479,12 @@ class LibraryPython(CProject):
         yield from super(LibraryPython, self).get_c_source_args()
         #yield '-fPIC'
 
-    async def build_requirements(self, makefile, func):
-        async for _ in super(LibraryPython, self).build_requirements(makefile, func):
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
+        async for _ in super(LibraryPython, self).requirements_1(makefile, func):
             yield _
         
     def binary_file(self):
@@ -482,8 +512,12 @@ class Library(CProject):
         
         self.doc_out_dir = os.path.join(self.build_dir, "html")
 
-    async def build_requirements(self, makefile, func):
-        async for _ in super().build_requirements(makefile, func):
+    async def requirements_0(self, makefile, func):
+        async for _ in super().requirements_0(makefile, func):
+            yield _
+
+    async def requirements_1(self, makefile, func):
+        async for _ in super().requirements_1(makefile, func):
             yield _
         
     def binary_file(self):
@@ -504,16 +538,20 @@ class Library(CProject):
 
         yield from self.rule_doxygen.rules()
 
-class TestExecutable(pymake.Rule):
+class TestExecutable(pymake.rules.Rule):
     def __init__(self, ex):
         self.ex = ex
  
         f_out = os.path.join(self.ex.p.build_dir, "test.txt")
 
-        super(TestExecutable, self).__init__(pymake.ReqFile(f_out))
+        super(TestExecutable, self).__init__(pymake.req.ReqFile(f_out))
     
-    async def build_requirements(self, mc, func):
-        yield func(self.ex)
+    async def requirements_0(self, makefile, func):
+        return
+        yield
+
+    async def requirements_1(self, makefile, func):
+        yield await func(self.ex.req)
 
     async def build(self, mc, _, f_in):
         print(crayons.green('test {}'.format(self.ex.p.name), bold = True))
@@ -527,7 +565,7 @@ class TestExecutable(pymake.Rule):
             print(r.stderr.decode())
         
         if(r.returncode == 0):
-            with self.req.open("w") as f:
+            async with self.req.open("w") as f:
                 f.write(r.stdout.decode())
                 f.write(r.stderr.decode())
 

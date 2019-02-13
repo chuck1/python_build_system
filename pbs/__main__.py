@@ -7,9 +7,9 @@ import os
 import shutil
 
 import crayons
-import pymake
+import pymake.makefile
 import pbs
-from mybuiltins import ason
+import ason
 
 class Decoder(ason.Decoder):
     async def parse_function(self, k, args, kwargs, mc=None):
@@ -47,7 +47,7 @@ async def Make(args):
     
     p.execfile(args.file)
     
-    m = pymake.Makefile()
+    m = pymake.makefile.Makefile()
     
     m.rules += list(p.rules())
 
@@ -57,9 +57,9 @@ async def Make(args):
         if args.target:
             await m.make(target=args.target)
         else:
-            await m.make(target='all')
-    except pymake.BuildError as e:
-        print(e)
+            await m.make(pymake.req.ReqFile('all'))
+    #except pymake.BuildError as e:
+    #    print(e)
     except pbs.exception.CompileError as e:
         print(crayons.red(str(e)))
 

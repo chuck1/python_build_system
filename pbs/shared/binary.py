@@ -1,11 +1,12 @@
 import stat
 import os
-import pymake
 import subprocess
-import jinja2
 import logging
 
+import jinja2
 import crayons
+
+import pymake.rules
 
 import pbs.rules
 import pbs.rules.doc
@@ -16,26 +17,28 @@ logger = logging.getLogger(__name__)
 """
 the shared library binary file
 """
-class CSharedLibraryPython(pymake.Rule):
+class CSharedLibraryPython(pymake.rules.Rule):
     
     def __init__(self, library_project):
         self.p = library_project
  
-        super().__init__(pymake.ReqFile(self.p.binary_file()))
+        super().__init__(pymake.req.ReqFile(self.p.binary_file()))
         
         self.args = Arguments()
 
-    async def build_requirements(self, makefile, func):
-        yield func(pymake.ReqFile(__file__))
+    async def requirements_0(self, makefile, func):
+        yield await func(pymake.req.ReqFile(__file__))
+
+    async def requirements_1(self, makefile, func):
 
         for d in self.p.deps:
-            yield func(pymake.ReqFile(d.binary_file()))
+            yield await func(pymake.req.ReqFile(d.binary_file()))
 
         for s in self.p.files_object():
-            yield func(pymake.ReqFile(s))
+            yield await func(pymake.req.ReqFile(s))
 
         for s in self.p.files_header_processed():
-            yield func(pymake.ReqFile(s))
+            yield await func(pymake.req.ReqFile(s))
 
     def get_args_link(self):
         args_link = ['-l' + d.name for d in self.p.deps]
@@ -51,7 +54,7 @@ class CSharedLibraryPython(pymake.Rule):
 
         f_out = self.req.fn
 
-        pymake.makedirs(os.path.dirname(f_out))
+        pymake.util.makedirs(os.path.dirname(f_out))
 
         #inc_paths = -I/usr/include/python3.5
 
@@ -72,7 +75,9 @@ class CSharedLibraryPython(pymake.Rule):
         
         logger.info(" ".join(cmd))
 
-        return subprocess.call(cmd)
+        ret = subprocess.call(cmd)
+
+        if ret != 0: raise Exception()
 
     def rules(self):
         """

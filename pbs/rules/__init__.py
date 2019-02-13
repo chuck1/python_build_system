@@ -2,11 +2,11 @@ import subprocess
 import os
 import re
 
-import pymake
+import pymake.rules
 import crayons
 import pbs.exception
 
-class CSourceFileDeps(pymake.Rule):
+class CSourceFileDeps(pymake.rules.Rule):
     def __init__(self, library_project, filename):
 
         self.library_project = library_project
@@ -17,16 +17,16 @@ class CSourceFileDeps(pymake.Rule):
 
         self.file_deps = os.path.join(library_project.object_dir, h+'.dep')
 
-        super().__init__(pymake.ReqFile(self.file_deps))
+        super().__init__(pymake.req.ReqFile(self.file_deps))
 
     async def build_requirements(self, mc, func):
-        yield func(pymake.ReqFile(self.file_source))
+        yield await func(pymake.req.ReqFile(self.file_source))
         
         # processed header files must be generated before deps command can run properly
         for f in self.library_project.files_header_processed():
             #yield pymake.ReqFile(f)
             #mc.make(f)
-            yield func(pymake.ReqFile(f))
+            yield await func(pymake.req.ReqFile(f))
 
     async def build(self, mc, _, f_in):
         print(crayons.yellow('CSourceFileDeps {}'.format(self.file_deps), bold = True))
@@ -89,7 +89,7 @@ class CSourceFileDeps(pymake.Rule):
 
             m = pat.match(s)
 
-class CSourceFile(pymake.Rule):
+class CSourceFile(pymake.rules.Rule):
     def __init__(self, library_project, filename):
 
         self.library_project = library_project
@@ -102,27 +102,29 @@ class CSourceFile(pymake.Rule):
 
         self.rule_deps = CSourceFileDeps(library_project, filename)
 
-        super().__init__(pymake.ReqFile(self.file_object))
+        super().__init__(pymake.req.ReqFile(self.file_object))
 
-    async def build_requirements(self, mc, func):
-        yield func(pymake.ReqFile(__file__))
-        yield func(pymake.ReqFile(self.library_project.config_file))
-        yield func(pymake.ReqFile(self.file_source))
+    async def requirements_0(self, mc, func):
+        yield await func(pymake.req.ReqFile(__file__))
+        yield await func(pymake.req.ReqFile(self.library_project.config_file))
+
+    async def requirements_1(self, mc, func):
+        yield await func(pymake.req.ReqFile(self.file_source))
         
-        yield func(self.rule_deps)
+        yield await func(self.rule_deps.req)
         
         #print("depends for {}".format(self.file_source))
         for f in self.rule_deps.read_file():
             #print("    {}".format(f))
-            yield func(pymake.ReqFile(f))
+            yield await func(pymake.req.ReqFile(f))
 
         for f in self.library_project.deps:
-            yield func(f)
+            yield await func(f.req)
 
         #yield from [d.binary_file() for d in self.library_project.deps]
 
     async def build(self, mc, _, f_in):
-        pymake.makedirs(os.path.dirname(self.req.fn))
+        pymake.util.makedirs(os.path.dirname(self.req.fn))
 
         include_args = ['-I' + d for d in self.library_project.include_dirs()]
         define_args = ['-D' + d for d in self.library_project.defines()]
