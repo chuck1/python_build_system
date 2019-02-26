@@ -115,15 +115,15 @@ parser_find.add_argument('pattern')
 parser_find.add_argument('--move')
 parser_find.set_defaults(func=Find)
 
-parser_make = subparsers.add_parser('new_class')
-parser_make.add_argument('file')
-parser_make.set_defaults(func=new_class)
+parser_new_class = subparsers.add_parser('new_class')
+parser_new_class.add_argument('file')
+parser_new_class.set_defaults(func=new_class)
 
 
 
 
 
-FMT_STRING = "%(name)14s %(levelname)7s %(message)s"
+FMT_STRING = "%(name)14s %(lineno)4i %(levelname)7s %(message)s"
 
 LOGGING = {
     'version': 1,

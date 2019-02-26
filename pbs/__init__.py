@@ -39,6 +39,9 @@ class _All(pymake.rules.Rule):
 
     async def requirements_1(self, makefile, func):
         for p in self.project.parts:
+            logger.info(p.name)
+
+        for p in self.project.parts:
             yield await func(pymake.req.ReqFile(p.name + '-all'))
 
     async def build(self, mc, _, f_in):
@@ -63,7 +66,7 @@ class _Doc(pymake.rules.Rule):
     async def build(self, mc, _, f_in):
         await self.project.build(mc, None, None)
 
-class Project(object):
+class Project:
     def __init__(self):
         self.parts = list()
 
@@ -316,7 +319,7 @@ class CExecutable(pymake.rules.Rule):
         cmd += list(self.library_project.files_object()) + args_library_dir
         cmd += args_link + args_link + self.p.args.args
         
-        #print(" ".join(cmd))
+        print(" ".join(cmd))
 
         r = subprocess.call(cmd)
 
