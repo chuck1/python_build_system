@@ -527,7 +527,7 @@ class TestExecutable(pymake.Rule):
             print(r.stderr.decode())
         
         if(r.returncode == 0):
-            with open(self.f_out, "w") as f:
+            with open(self.req.fn, "w") as f:
                 f.write(r.stdout.decode())
                 f.write(r.stderr.decode())
 
