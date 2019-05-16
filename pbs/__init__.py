@@ -272,11 +272,15 @@ class CExecutable(pymake.Rule):
             yield func(pymake.ReqFile(d.binary_file()))
 
     def get_args_link(self):
-        args_link = ['-l' + d.name for d in self.library_project.deps]
+
+        yield from ['-l' + d.name for d in self.library_project.deps]
+        
         for d in self.p.deps:
             for l in d.args.libraries:
-                args_link.append('-l' + l)
-        return args_link
+                yield '-l' + l
+        
+        for l in self.args.libraries:
+            yield '-l' + l
 
     async def build(self, mc, _, f_in):
         pymake.makedirs(os.path.dirname(self.req.fn))
@@ -286,7 +290,7 @@ class CExecutable(pymake.Rule):
         print(crayons.red("Build executable " + self.library_project.name, bold = True))
         print("    args: {}".format(" ".join(args)))
 
-        args_link = self.get_args_link()
+        args_link = list(self.get_args_link())
 
         args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
 
@@ -538,7 +542,9 @@ class Executable(CProject):
 
     def __init__(self, project, name, config_file):
         super(Executable, self).__init__(project, name, config_file)
- 
+
+        self.executable = CExecutable(self)
+
     def binary_file(self):
         return os.path.join(self.build_dir, self.name)
    
@@ -549,13 +555,11 @@ class Executable(CProject):
         
         yield self
 
-        l = CExecutable(self)
-
-        yield from l.rules()
+        yield from self.executable.rules()
 
         #yield from self.rules_files_header_processed()
         
-        yield TestExecutable(l)
+        yield TestExecutable(self.executable)
 
         yield from self.rules_files_header_processed()
 

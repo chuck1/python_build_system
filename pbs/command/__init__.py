@@ -1,3 +1,5 @@
+import crayons
+
 import pbs
 import pymake
 
