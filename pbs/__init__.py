@@ -282,6 +282,13 @@ class CExecutable(pymake.Rule):
         for l in self.args.libraries:
             yield '-l' + l
 
+    def get_library_dir(self):
+        for d in self.library_project.deps:
+            yield '-L' + d.build_dir
+
+        for d in self.args.library_dirs:
+            yield '-L' + d
+
     async def build(self, mc, _, f_in):
         pymake.makedirs(os.path.dirname(self.req.fn))
 
@@ -292,7 +299,7 @@ class CExecutable(pymake.Rule):
 
         args_link = list(self.get_args_link())
 
-        args_library_dir = ['-L' + d.build_dir for d in self.library_project.deps]
+        args_library_dir = list(self.get_library_dir())
 
         cmd = ['g++'] + args + ['-o', self.req.fn]
         cmd += list(self.library_project.files_object()) + args_library_dir
