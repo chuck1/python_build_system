@@ -278,6 +278,14 @@ class CExecutable(pymake.Rule):
                 args_link.append('-l' + l)
         return args_link
 
+    def _args(self):
+
+        for d in self.library_project.deps:
+
+            if isinstance(d, LibraryDynamic):
+
+                yield f"-Wl,-rpath,{d.build_dir}"
+
     async def build(self, mc, _, f_in):
         pymake.makedirs(os.path.dirname(self.req.fn))
 
@@ -292,7 +300,7 @@ class CExecutable(pymake.Rule):
 
         cmd = ['g++'] + args + ['-o', self.req.fn]
         cmd += list(self.library_project.files_object()) + args_library_dir
-        cmd += args_link + args_link + self.p.args.args
+        cmd += args_link + args_link + self.p.args.args + list(self._args())
         
         #print(" ".join(cmd))
 
@@ -442,7 +450,10 @@ class CProject(pymake.Rule):
         for s in self.files_header_unprocessed():
             yield CHeaderTemplateFile(self, s)
 
-class LibraryPython(CProject):
+class LibraryDynamic(CProject):
+    pass
+
+class LibraryPython(LibraryDynamic):
     def __init__(self, project, name, config_file):
         super(LibraryPython, self).__init__(project, name, config_file)
        
