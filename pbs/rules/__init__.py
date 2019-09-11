@@ -26,6 +26,9 @@ class CSourceFileDeps(pymake.Rule):
         for f in self.library_project.files_header_processed():
             #yield pymake.ReqFile(f)
             #mc.make(f)
+
+            # however, this is making compiling slow because EVERY header gets processed
+
             yield func(pymake.ReqFile(f))
 
     async def build(self, mc, _, f_in):
