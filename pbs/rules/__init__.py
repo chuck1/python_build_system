@@ -147,10 +147,10 @@ class CSourceFile(pymake.Rule):
             for s in include_args:
                 print(s)
 
-            print('files header processed')
+            #print('files header processed')
 
-            for f in self.library_project.files_header_processed():
-                print(f)
+            #for f in self.library_project.files_header_processed():
+            #    print(f)
 
             raise pbs.exception.CompileError(" ".join(cmd))
         
